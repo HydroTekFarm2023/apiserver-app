@@ -1,0 +1,19 @@
+{
+  "name": "backend_bot",
+  "version": "1.0.0",
+  "description": "backend for hydrotek bot",
+  "main": "app/server.js",
+  "scripts": {
+    "serverstart": "nodemon server.js",
+    "start": "node server.js"
+  },
+  "author": "Ajay Arumugam",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^5.9.20"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  }
+}
