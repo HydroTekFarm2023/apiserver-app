@@ -29,76 +29,10 @@ app.use((req, res, next) => {
 app.post('/brief_info', (req, res, next) => {
     console.log(req.body);
     const brief_info = new Brief_Info({
-        name: "Grow Room 1",
-        growRoomVariables: [
-            {
-                name: "air temp",
-                target_value: 55,
-                desired_range_low: 44,
-                desired_range_high: 66
-            },
-            {
-                name: "humidity",
-                target_value: 15,
-                desired_range_low: 4,
-                desired_range_high: 23
-            }
-        ],
-        systems: [
-            {
-                name: "System 1",
-                systemVariables: [
-                    {
-                        name: "ph",
-                        target_value: 3,
-                        desired_range_low: 2.2,
-                        desired_range_high: 4.5
-                    },
-                    {
-                        name: "ec",
-                        target_value: 3.6,
-                        desired_range_low: 2.1,
-                        desired_range_high: 4.9
-                    },
-                    {
-                        name: "water temp",
-                        target_value: 33,
-                        desired_range_low: 22,
-                        desired_range_high: 45
-                    }
-                ]
-            },
-            {
-                name: "System 2",
-                systemVariables: [
-                    {
-                        name: "do",
-                        target_value: 1,
-                        desired_range_low: 0.2,
-                        desired_range_high: 4.5
-                    },
-                    {
-                        name: "ec",
-                        target_value: 3.6,
-                        desired_range_low: 2.1,
-                        desired_range_high: 4.9
-                    },
-                    {
-                        name: "water temp",
-                        target_value: 35,
-                        desired_range_low: 21,
-                        desired_range_high: 45
-                    },
-                    {
-                        name: "ph",
-                        target_value: 3.5,
-                        desired_range_low: 2.1,
-                        desired_range_high: 4.5
-                    }
-                ]
-            }
-        ]
-    });
+        name: req.body.name,
+        growRoomVariables: req.body.growRoomVariables,
+        systems: req.body.systems
+    })
     console.log(req.body.systems);
     brief_info.save();
     res.status(200).json({
