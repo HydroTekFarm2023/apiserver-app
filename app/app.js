@@ -1,6 +1,7 @@
 const express = require("express");
 const Brief_Info = require("./brief_info");
 const Grow_Room_Live_Data = require("./grow_room_live_data");
+const Sensors_data = require("./sensors_data");
 
 const bodyParser = require('body-parser');
 
@@ -48,6 +49,12 @@ app.get('/brief_info', (req, res, next) => {
             });
         })
     
+});
+
+app.get('/sensors_data', (req, res) => {
+    Sensors_data.find({}).then(data=>{
+        console.log(data);
+    })
 });
  
 module.exports = app;
