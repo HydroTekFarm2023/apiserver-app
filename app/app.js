@@ -51,10 +51,24 @@ app.get('/brief_info', (req, res, next) => {
     
 });
 
-app.get('/sensors_data', (req, res) => {
-    Sensors_data.find({}).then(data=>{
-        console.log(data);
+app.get('/sensors_data/:grow_room_id/:system_id/:sensor', (req, res, next) => {
+    Sensors_data.aggregate(
+        [
+            // {$match:{'grow_room_id':'GrowRoom2','system_id':'system1'}},
+            {$match:{'grow_room_id':req.params.grow_room_id,'system_id':req.params.system_id}},
+            {$unwind:"$samples"},
+            {$unwind:"$samples.sensors"},
+            {$match:{'samples.sensors.name':req.params.sensor}},
+            {$group:{_id:{time:'$samples.time',value:'$samples.sensors.value'}}},
+            {$sort:{'samples.sensors.time':1}},
+            //{$project:{'samples.time':1,'samples.sensors.value':1}}
+        ]).then(documents => {
+        res.status(200).json({
+            sensor_info: documents
+        });
     })
 });
- 
+
+
+
 module.exports = app;
