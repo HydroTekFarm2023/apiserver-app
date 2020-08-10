@@ -1,8 +1,7 @@
 const express = require("express");
-const Brief_Info = require("./brief_info");
-const Grow_Room_Live_Data = require("./grow_room_live_data");
-const Grow_Room_Settings = require("./grow_room_settings");
-const System_Settings = require("./system_settings");
+const Cluster = require("./clusters");
+const Device_Settings = require("./device_settings");
+const Plant_Settings = require("./plant");
 
 const bodyParser = require('body-parser');
 
@@ -29,22 +28,9 @@ app.use((req, res, next) => {
     next();
 });
 
-
-app.post('/brief_info', (req, res, next) => {
-    const brief_info = new Brief_Info({
-        name: req.body.name,
-        growRoomVariables: req.body.growRoomVariables,
-        systems: req.body.systems
-    })
-    console.log(req.body.systems);
-    brief_info.save();
-    res.status(200).json({
-        message: "success"
-    });
-});
-
-app.get('/brief_info', (req, res, next) => {
-    Brief_Info.find()
+app.get('/clusters', (req, res, next) => {
+    console.log("hererer");
+    Cluster.find()
     .then(documents => {
         res.status(200).json({
             brief_info: documents
@@ -52,26 +38,26 @@ app.get('/brief_info', (req, res, next) => {
     });
 });
 
-app.post('/grow_room_settings/:growRoomID', (req, res, next) => {
-    const grow_room_settings = new Grow_Room_Settings({
-        growRoomID: req.params.growRoomID,
-        settings: req.body
+app.post('/create_cluster', (req, res, next) => {
+    const cluster = new Cluster({
+        name: req.body.name,
+        growRoom: null
     });
-    grow_room_settings.save();
+    cluster.save();
     res.status(200).json({
         message: "success"
     });
 });
 
-app.get('/grow_room_settings/:growRoomID', (req, res, next) => {
-    Grow_Room_Settings.findOne({ growRoomID: req.params.growRoomID })
-    .then(document => {
-        res.status(200).json(document);
+app.post('/create_grow_room', (req, res, next) => {
+    const device_settings = new Device_Settings({
+        name: req.body.name,
+        type: "growroom",
+        clusterName: req.body.cluster_name,
+        settings: req.body.settings
     });
-});
-
-app.put('/grow_room_settings/:id', (req, res, next) => {
-    Grow_Room_Settings.updateOne({ _id: req.params.id }, { $set: { settings: req.body } })
+    device_settings.save();
+    Cluster.updateOne({ name: req.body.cluster_name }, { $set: { growRoom: { name: req.body.name, growRoomVariables: req.body.brief_info }}})
     .then(resData => {
         console.log(resData);
         res.status(200).json({
@@ -80,32 +66,56 @@ app.put('/grow_room_settings/:id', (req, res, next) => {
     });
 });
 
-app.post('/system_settings/:growRoomID/:systemID', (req, res, next) => {
-    const system_settings = new System_Settings({
-        growRoomID: req.params.growRoomID,
-        systemID: req.params.systemID,
-        settings: req.body
+app.post('/create_system', (req, res, next) => {
+    const device_settings = new Device_Settings({
+        name: req.body.name,
+        type: "system",
+        clusterName: req.body.cluster_name,
+        settings: req.body.settings
     });
-    system_settings.save();
-    res.status(200).json({
-        message: "success"
+    device_settings.save(function(err, doc){
+        console.log(doc._id);
+        Cluster.updateOne({ name: req.body.cluster_name }, { $push: { systems: { name: req.body.name, systemVariables: req.body.brief_info }}})
+        .then(resData => {
+            res.status(200).json({
+                _id: doc._id
+            });
+        });
     });
 });
 
-app.get('/system_settings/:growRoomID/:systemID', (req, res, next) => {
-    System_Settings.findOne({ growRoomID: req.params.growRoomID, systemID: req.params.systemID })
+app.get('/device_settings/:clusterName/:deviceName', (req, res, next) => {
+    Device_Settings.findOne({ clusterName: req.params.clusterName, name: req.params.deviceName })
     .then(document => {
         res.status(200).json(document);
     });
 });
 
-app.put('/system_settings/:id', (req, res, next) => {
-    System_Settings.updateOne({ _id: req.params.id }, { $set: { settings: req.body } })
+app.put('/device_settings/:id', (req, res, next) => {
+    Device_Settings.updateOne({ _id: req.params.id }, { $set: { settings: req.body } })
     .then(resData => {
         console.log(resData);
         res.status(200).json({
             message: "success"
         });
+    });
+});
+
+app.get('/get_plants', (req, res, next) => {
+    Plant_Settings.find()
+    .then(documents => {
+        res.status(200).json(documents);
+    })
+});
+
+app.post('/create_plant', (req, res, next) => {
+    const plant_settings = new Plant_Settings({
+        name: req.body.name,
+        settings: req.body.settings
+    });
+    plant_settings.save();
+    res.status(200).json({
+        message: "success"
     });
 });
 
