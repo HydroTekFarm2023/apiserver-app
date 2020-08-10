@@ -8,7 +8,7 @@ const sensor = mongoose.Schema({
 });
 
 const sample = mongoose.Schema({
-    time: String,
+    time: Date,
     sensors:[sensor]
 });
 
@@ -16,8 +16,8 @@ const sample = mongoose.Schema({
 const sensor_info_schema = mongoose.Schema({
     grow_room_id: String,
     system_id: String,
-    first_time: String,
-    last_time: String,
+    first_time: Date,
+    last_time: Date,
     nsamples:Number,
     samples:[sample]
     },{collection: 'temp_sensors_data'});

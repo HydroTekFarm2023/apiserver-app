@@ -59,9 +59,60 @@ app.get('/sensors_data/:grow_room_id/:system_id/:sensor', (req, res, next) => {
             {$unwind:"$samples"},
             {$unwind:"$samples.sensors"},
             {$match:{'samples.sensors.name':req.params.sensor}},
+            
             {$group:{_id:{time:'$samples.time',value:'$samples.sensors.value'}}},
-            {$sort:{'samples.sensors.time':1}},
-            //{$project:{'samples.time':1,'samples.sensors.value':1}}
+            {$sort:{'_id.time':1}},
+            //{$project:{'samples.time':{$gte:ISODate("2020-07-03T19:46:30.000Z")},'samples.sensors.value':1,}}
+        ]).then(documents => {
+        res.status(200).json({
+            sensor_info: documents
+        });
+    })
+});
+
+// app.get('/get_all/:grow_room_id/:system_id/', (req, res, next) => {
+//     Sensors_data.aggregate(
+//         [
+//             {$match:{'grow_room_id':req.params.grow_room_id,'system_id':req.params.system_id}},
+//             {$unwind:"$samples"},
+//             {$unwind:"$samples.sensors"},
+//             {$group:{
+//                 "_id":'$samples.time',
+//                 // "timestamp":{'$addToSet':'$samples.time'},
+//                 "sensors":{'$addToSet':'$samples.sensors'},
+//             }},
+//             {$sort:{'_id':1}},
+//             //{$project:{_id:{$gte: ['$_id','2020-07-03 19:46:30']},'sensors':1}}
+            
+                        
+//         ]).then(documents => {
+//         res.status(200).json({
+//             sensor_info: documents
+//         });
+//     })
+// });
+
+
+
+app.get('/get_all/:grow_room_id/:system_id/:start_date/:end_date', (req, res, next) => {
+    //from=  '2020-07-03T19:46:00.000Z';
+    //to = '2020-07-03T19:47:00.000Z';
+
+    Sensors_data.aggregate(
+        [
+            {$match:{'grow_room_id':req.params.grow_room_id,'system_id':req.params.system_id}},
+            {$unwind:"$samples"},
+            {$unwind:"$samples.sensors"},
+            {$match:{"samples.time":{$gte:new Date(req.params.start_date)}}},
+            {$match:{"samples.time":{$lt:new Date(req.params.end_date)}}},
+            {$group:{
+                "_id":'$samples.time',
+                
+                "sensors":{'$addToSet':'$samples.sensors'},
+            }},
+            {$sort:{'_id':1}},
+             
+                        
         ]).then(documents => {
         res.status(200).json({
             sensor_info: documents
