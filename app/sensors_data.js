@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { collection } = require('./brief_info');
+// const { collection } = require('./brief_info');
 
 
 const sensor = mongoose.Schema({
@@ -8,17 +8,26 @@ const sensor = mongoose.Schema({
 });
 
 const sample = mongoose.Schema({
-    time: Date,
+    TimeStamp: Date,
     sensors:[sensor]
 });
 
 
+// const sensor_info_schema = mongoose.Schema({
+//     grow_room_id: String,
+//     system_id: String,
+//     first_time: Date,
+//     last_time: Date,
+//     nsamples:Number,
+//     samples:[sample]
+//     },{collection: 'temp_sensors_data'});
+
 const sensor_info_schema = mongoose.Schema({
-    grow_room_id: String,
-    system_id: String,
-    first_time: Date,
-    last_time: Date,
-    nsamples:Number,
+    clusterName: String,
+    type: String,
+    name:String,
+    firstTime: Date,
+    lastTime: Date,
     samples:[sample]
     },{collection: 'temp_sensors_data'});
 
