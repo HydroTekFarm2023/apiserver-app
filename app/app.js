@@ -121,7 +121,7 @@ app.get('/get_plants', (req, res, next) => {
             
 //             {$group:{_id:{time:'$samples.time',value:'$samples.sensors.value'}}},
 //             {$sort:{'_id.time':1}},
-//             //{$project:{'samples.time':{$gte:ISODate("2020-07-03T19:46:30.000Z")},'samples.sensors.value':1,}}
+//             //{$project:{'samples.time':{$gte:ISODate("2020-07-03T20:46:30.000Z")},'samples.sensors.value':1,}}
 //         ]).then(documents => {
 //         res.status(200).json({
 //             sensor_info: documents
@@ -133,8 +133,8 @@ app.get('/get_plants', (req, res, next) => {
 
 
 // app.get('/get_all/:grow_room_id/:system_id/:start_date/:end_date', (req, res, next) => {
-//     //from=  '2020-07-03T19:46:00.000Z';
-//     //to = '2020-07-03T19:47:00.000Z';
+//     //from=  '2020-07-03T20:46:00.000Z';
+//     //to = '2020-07-03T20:47:00.000Z';
 
 //     Sensors_data.aggregate(
 //         [
@@ -180,6 +180,49 @@ app.get('/get_all/:clusterName/:name/:start_date/:end_date', (req, res, next) =>
             sensor_info: documents
         });
     })
+});
+
+function generatephRandom(){
+    var phMin = 6;
+    var phMax = 9;
+    var random = (Math.random() * (+phMax - +phMin) + +phMin).toFixed(1); 
+    return random
+}
+
+function generateecRandom(){
+    var phMin = 9;
+    var phMax = 11;
+    var random = (Math.random() * (+phMax - +phMin) + +phMin).toFixed(1); 
+    return random
+}
+
+function generatetempRandom(){
+    var phMin = 20;
+    var phMax = 27;
+    var random = (Math.random() * (+phMax - +phMin) + +phMin).toFixed(1); 
+    return random
+}
+
+app.post('/insert_data',(req, res, next) =>{
+    
+    const sensor_data = new Sensors_data({
+        clusterName: 'Cluster 1',
+        type:'growRoom',
+        name:'Grow Room 1',
+        firstTime:new Date('2020-09-01T10:00:00.000+00:00'),
+        lastTime:new Date('2020-09-01T10:02:00.000+00:00'),
+        samples:[
+            {TimeStamp:new Date('2020-09-01T10:00:00.000+00:00'),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'temp',value:generatetempRandom()}]},
+            {TimeStamp:new Date('2020-09-01T10:00:30.000+00:00'),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'temp',value:generatetempRandom()}]},
+            {TimeStamp:new Date('2020-09-01T10:01:00.000+00:00'),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'temp',value:generatetempRandom()}]},
+            {TimeStamp:new Date('2020-09-01T10:01:30.000+00:00'),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'temp',value:generatetempRandom()}]},
+            {TimeStamp:new Date('2020-09-01T10:02:00.000+00:00'),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'temp',value:generatetempRandom()}]},
+        ]
+    });
+    sensor_data.save();
+    res.status(200).json({
+        message:"success"
+    });
 });
 
 
