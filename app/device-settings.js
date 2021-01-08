@@ -4,8 +4,8 @@ const settings = mongoose.Schema({}, { strict : false, _id: false });
 
 const device_settings_data = mongoose.Schema({
     name: String,
+    deviceId: String,
     type: String,
-    clusterName: String,
     settings: settings
 });
 

@@ -1,12 +1,8 @@
 const express = require("express");
-const Cluster = require("./clusters");
-const Device_Settings = require("./device_settings");
-const Plant_Settings = require("./plant");
-
+const DeviceSettings = require("./device-settings");
+const PlantSettings = require("./plant");
 const bodyParser = require('body-parser');
-
 const mongoose = require("mongoose");
-
 const app = express();
 
 mongoose.connect('mongodb+srv://admin:Kansas2020!m@cluster0-x5wba.gcp.mongodb.net/test?retryWrites=true&w=majority').then(() => {
@@ -28,64 +24,29 @@ app.use((req, res, next) => {
     next();
 });
 
-app.get('/clusters', (req, res, next) => {
-    console.log("hererer");
-    Cluster.find()
-    .then(documents => {
-        res.status(200).json({
-            brief_info: documents
-        });
-    });
-});
-
-app.post('/create_cluster', (req, res, next) => {
-    const cluster = new Cluster({
+app.post('/create-grow-room', (req, res, next) => {
+    const deviceSettings = new DeviceSettings({
         name: req.body.name,
-        growRoom: null
-    });
-    cluster.save();
-    res.status(200).json({
-        message: "success"
-    });
-});
-
-app.post('/create_grow_room', (req, res, next) => {
-    const device_settings = new Device_Settings({
-        name: req.body.name,
+        deviceId: req.body.deviceId,
         type: "growroom",
-        clusterName: req.body.cluster_name,
         settings: req.body.settings
     });
-    device_settings.save();
-    Cluster.updateOne({ name: req.body.cluster_name }, { $set: { growRoom: { name: req.body.name, growRoomVariables: req.body.brief_info }}})
-    .then(resData => {
-        console.log(resData);
-        res.status(200).json({
-            message: "success"
-        });
-    });
+    deviceSettings.save();
 });
 
-app.post('/create_system', (req, res, next) => {
-    const device_settings = new Device_Settings({
+app.post('/create-system', (req, res, next) => {
+    const deviceSettings = new DeviceSettings({
         name: req.body.name,
+        deviceId: req.body.deviceId,
         type: "system",
-        clusterName: req.body.cluster_name,
+        clusterName: req.body.clusterName,
         settings: req.body.settings
     });
-    device_settings.save(function(err, doc){
-        console.log(doc._id);
-        Cluster.updateOne({ name: req.body.cluster_name }, { $push: { systems: { name: req.body.name, systemVariables: req.body.brief_info }}})
-        .then(resData => {
-            res.status(200).json({
-                _id: doc._id
-            });
-        });
-    });
+    deviceSettings.save();
 });
 
-app.get('/device_settings/:clusterName/:deviceName', (req, res, next) => {
-    Device_Settings.findOne({ clusterName: req.params.clusterName, name: req.params.deviceName })
+app.get('/device-settings/:deviceID', (req, res, next) => {
+    DeviceSettings.findOne({ deviceID: req.params.deviceID })
     .then(document => {
         res.status(200).json(document);
     });
@@ -101,19 +62,19 @@ app.put('/device_settings/:id', (req, res, next) => {
     });
 });
 
-app.get('/get_plants', (req, res, next) => {
-    Plant_Settings.find()
+app.get('/get-plants', (req, res, next) => {
+    PlantSettings.find()
     .then(documents => {
         res.status(200).json(documents);
     })
 });
 
-app.post('/create_plant', (req, res, next) => {
-    const plant_settings = new Plant_Settings({
+app.post('/create-plant', (req, res, next) => {
+    const plantSettings = new PlantSettings({
         name: req.body.name,
         settings: req.body.settings
     });
-    plant_settings.save();
+    plantSettings.save();
     res.status(200).json({
         message: "success"
     });
