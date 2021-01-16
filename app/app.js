@@ -52,8 +52,15 @@ app.get('/device-settings/:deviceID', (req, res, next) => {
     });
 });
 
-app.put('/device_settings/:id', (req, res, next) => {
-    Device_Settings.updateOne({ _id: req.params.id }, { $set: { settings: req.body } })
+app.get('/device-settings', (req, res, next) => {
+    DeviceSettings.find()
+    .then(document => {
+        res.status(200).json(document);
+    });
+});
+
+app.put('/device-settings/:deviceID', (req, res, next) => {
+    Device_Settings.updateOne({ _id: req.params.deviceID }, { $set: { settings: req.body } })
     .then(resData => {
         console.log(resData);
         res.status(200).json({
