@@ -1,9 +1,11 @@
 const express = require("express");
-const DeviceSettings = require("./device-settings");
-const PlantSettings = require("./plant");
 const bodyParser = require('body-parser');
 const mongoose = require("mongoose");
 const app = express();
+
+const FertigationSystemSettings = require("./fertigation-system-settings");
+const ClimateControllerSettings = require("./climate-controller-settings");
+const PlantSettings = require("./plant");
 
 mongoose.connect('mongodb+srv://admin:Kansas2020!m@cluster0-x5wba.gcp.mongodb.net/test?retryWrites=true&w=majority').then(() => {
     console.log("connected to database");
@@ -24,45 +26,64 @@ app.use((req, res, next) => {
     next();
 });
 
-app.post('/create-grow-room', (req, res, next) => {
-    const deviceSettings = new DeviceSettings({
+app.post('/fertigation-system-settings/create', (req, res, next) => {
+    const fertigationSystemSettings = new FertigationSystemSettings({
         name: req.body.name,
-        deviceId: req.body.deviceId,
-        type: "growroom",
+        type: "fertigation-system",
         settings: req.body.settings
     });
-    deviceSettings.save();
+    fertigationSystemSettings.save();
 });
 
-app.post('/create-system', (req, res, next) => {
-    const deviceSettings = new DeviceSettings({
-        name: req.body.name,
-        deviceId: req.body.deviceId,
-        type: "system",
-        clusterName: req.body.clusterName,
-        settings: req.body.settings
-    });
-    deviceSettings.save();
-});
-
-app.get('/device-settings/:deviceID', (req, res, next) => {
-    DeviceSettings.findOne({ deviceID: req.params.deviceID })
+app.get('/fertigation-system-settings/find/:id', (req, res, next) => {
+    FertigationSystemSettings.findOne({ _id: req.params.id })
     .then(document => {
         res.status(200).json(document);
     });
 });
 
-app.get('/device-settings', (req, res, next) => {
-    DeviceSettings.find()
+app.get('/fertigation-system-settings/find/all', (req, res, next) => {
+    FertigationSystemSettings.find()
     .then(document => {
         res.status(200).json(document);
     });
 });
 
-app.put('/device-settings/:deviceID', (req, res, next) => {
-    Device_Settings.updateOne({ _id: req.params.deviceID }, { $set: { settings: req.body } })
-    .then(resData => {
-        console.log(resData);
+app.put('/fertigation-system-settings/update/:id', (req, res, next) => {
+    FertigationSystemSettings.updateOne({ _id: req.params.id }, { $set: { settings: req.body } })
+    .then(() => {
+        res.status(200).json({
+            message: "success"
+        });
+    });
+});
+
+app.post('/climate-controller-settings/create', (req, res, next) => {
+    const climateControllerSettings = new ClimateControllerSettings({
+        name: req.body.name,
+        type: "climate-controller",
+        settings: req.body.settings
+    });
+    climateControllerSettings.save();
+});
+
+app.get('/climate-controller-settings/find/:id', (req, res, next) => {
+    ClimateControllerSettings.findOne({ _id: req.params.id })
+    .then(document => {
+        res.status(200).json(document);
+    });
+});
+
+app.get('/climate-controller-settings/find/all', (req, res, next) => {
+    ClimateControllerSettings.find()
+    .then(document => {
+        res.status(200).json(document);
+    });
+});
+
+app.put('/climate-controller-settings/update/:id', (req, res, next) => {
+    ClimateControllerSettings.updateOne({ _id: req.params.id }, { $set: { settings: req.body } })
+    .then(() => {
         res.status(200).json({
             message: "success"
         });
