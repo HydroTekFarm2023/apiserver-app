@@ -32,7 +32,16 @@ app.post('/fertigation-system-settings/create', (req, res, next) => {
         type: "fertigation-system",
         settings: req.body.settings
     });
-    fertigationSystemSettings.save();
+    fertigationSystemSettings.save().then(() => {
+        res.status(201).json(fertigationSystemSettings);
+    });
+});
+
+app.get('/fertigation-system-settings/find', (req, res, next) => {
+    FertigationSystemSettings.find()
+    .then(document => {
+        res.status(200).json(document);
+    });
 });
 
 app.get('/fertigation-system-settings/find/:id', (req, res, next) => {
@@ -42,14 +51,7 @@ app.get('/fertigation-system-settings/find/:id', (req, res, next) => {
     });
 });
 
-app.get('/fertigation-system-settings/find/all', (req, res, next) => {
-    FertigationSystemSettings.find()
-    .then(document => {
-        res.status(200).json(document);
-    });
-});
-
-app.put('/fertigation-system-settings/update/:id', (req, res, next) => {
+app.patch('/fertigation-system-settings/update/:id', (req, res, next) => {
     FertigationSystemSettings.updateOne({ _id: req.params.id }, { $set: { settings: req.body } })
     .then(() => {
         res.status(200).json({
@@ -64,7 +66,9 @@ app.post('/climate-controller-settings/create', (req, res, next) => {
         type: "climate-controller",
         settings: req.body.settings
     });
-    climateControllerSettings.save();
+    climateControllerSettings.save().then(() => {
+        res.status(201).json(climateControllerSettings);
+    });
 });
 
 app.get('/climate-controller-settings/find/:id', (req, res, next) => {
@@ -74,14 +78,14 @@ app.get('/climate-controller-settings/find/:id', (req, res, next) => {
     });
 });
 
-app.get('/climate-controller-settings/find/all', (req, res, next) => {
+app.get('/climate-controller-settings/find', (req, res, next) => {
     ClimateControllerSettings.find()
     .then(document => {
         res.status(200).json(document);
     });
 });
 
-app.put('/climate-controller-settings/update/:id', (req, res, next) => {
+app.patch('/climate-controller-settings/update/:id', (req, res, next) => {
     ClimateControllerSettings.updateOne({ _id: req.params.id }, { $set: { settings: req.body } })
     .then(() => {
         res.status(200).json({
