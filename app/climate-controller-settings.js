@@ -36,7 +36,8 @@ const settings = mongoose.Schema({
 const climateControllerSettings = mongoose.Schema({
     name: String, 
     type: String,
-    settings: settings
+    settings: settings,
+    device_started: Boolean
 }); 
 
 module.exports = mongoose.model('climate_controller_settings', climateControllerSettings);

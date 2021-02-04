@@ -30,7 +30,8 @@ app.post('/fertigation-system-settings/create', (req, res, next) => {
     const fertigationSystemSettings = new FertigationSystemSettings({
         name: req.body.name,
         type: "fertigation-system",
-        settings: req.body.settings
+        settings: req.body.settings,
+        device_started: req.body.device_started
     });
     fertigationSystemSettings.save().then(() => {
         res.status(201).json(fertigationSystemSettings);
@@ -51,8 +52,9 @@ app.get('/fertigation-system-settings/find/:id', (req, res, next) => {
     });
 });
 
-app.patch('/fertigation-system-settings/update/:id', (req, res, next) => {
-    FertigationSystemSettings.updateOne({ _id: req.params.id }, { $set: { settings: req.body } })
+app.put('/fertigation-system-settings/update/:id', (req, res, next) => {
+    FertigationSystemSettings.updateOne({ _id: req.params.id }, 
+        { $set: { name: req.body.name, type: req.body.type, settings: req.body.settings, device_started: req.body.device_started } })
     .then(() => {
         res.status(200).json({
             message: "success"
@@ -64,7 +66,8 @@ app.post('/climate-controller-settings/create', (req, res, next) => {
     const climateControllerSettings = new ClimateControllerSettings({
         name: req.body.name,
         type: "climate-controller",
-        settings: req.body.settings
+        settings: req.body.settings,
+        device_started: req.body.device_started
     });
     climateControllerSettings.save().then(() => {
         res.status(201).json(climateControllerSettings);
@@ -85,8 +88,9 @@ app.get('/climate-controller-settings/find', (req, res, next) => {
     });
 });
 
-app.patch('/climate-controller-settings/update/:id', (req, res, next) => {
-    ClimateControllerSettings.updateOne({ _id: req.params.id }, { $set: { settings: req.body } })
+app.put('/climate-controller-settings/update/:id', (req, res, next) => {
+    ClimateControllerSettings.updateOne({ _id: req.params.id }, 
+        { $set: { name: req.body.name, type: req.body.type, settings: req.body.settings, device_started: req.body.device_started } })
     .then(() => {
         res.status(200).json({
             message: "success"

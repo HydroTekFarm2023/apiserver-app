@@ -3,8 +3,6 @@ const mongoose = require('mongoose');
 const phSensor = mongoose.Schema({
   monit_only: Boolean,
   control: {
-    up_ctrl: Boolean,
-    down_ctrl: Boolean,
     d_n_enabled: Boolean,
     day_tgt: Number,
     night_tgt: Number,
@@ -27,8 +25,6 @@ const phSensor = mongoose.Schema({
 const ecSensor = mongoose.Schema({
   monit_only: Boolean,
   control: {
-    up_ctrl: Boolean,
-    down_ctrl: Boolean,
     d_n_enabled: Boolean,
     day_tgt: Number,
     night_tgt: Number,
@@ -85,7 +81,8 @@ const settings = mongoose.Schema({
 const fertigationSystemSettings = mongoose.Schema({
     name: String, 
     type: String,
-    settings: settings
+    settings: settings,
+    device_started: Boolean
 }); 
 
 module.exports = mongoose.model('fertigation_system_settings', fertigationSystemSettings);
