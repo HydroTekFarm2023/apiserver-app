@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const phSensor = mongoose.Schema({
+  name: String,
   monit_only: Boolean,
   control: {
     d_n_enabled: Boolean,
@@ -23,6 +24,7 @@ const phSensor = mongoose.Schema({
 }, { _id: false });
 
 const ecSensor = mongoose.Schema({
+  name: String,
   monit_only: Boolean,
   control: {
     d_n_enabled: Boolean,
@@ -59,6 +61,7 @@ const ecSensor = mongoose.Schema({
 }, { _id: false });
 
 const waterTempSensor = mongoose.Schema({
+  name: String,
   monit_only: Boolean,
   control: {
     up_ctrl: Boolean,
@@ -82,6 +85,7 @@ const fertigationSystemSettings = mongoose.Schema({
     name: String, 
     type: String,
     settings: settings,
+    topicID: String,
     device_started: Boolean
 }); 
 

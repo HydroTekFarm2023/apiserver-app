@@ -37,6 +37,7 @@ const climateControllerSettings = mongoose.Schema({
     name: String, 
     type: String,
     settings: settings,
+    topicID: String,
     device_started: Boolean
 }); 
 
