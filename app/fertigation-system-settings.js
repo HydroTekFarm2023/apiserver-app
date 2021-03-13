@@ -11,12 +11,8 @@ const phSensor = mongoose.Schema({
     dose_time: Number,
     dose_interv: Number,
     pumps: {
-      pump_1: {
-      enabled: Boolean
-      },
-      pump_2: {
-      enabled: Boolean
-      }
+      ph_up: Boolean,
+      ph_down: Boolean
     }
   },
   alarm_min: Number,
@@ -34,26 +30,11 @@ const ecSensor = mongoose.Schema({
     dose_time: Number,
     dose_interv: Number,
     pumps: {
-      pump_1: {
-        enabled: Boolean,
-        value: Number
-      },
-      pump_2: { 
-        enabled: Boolean,
-        value: Number
-      },
-      pump_3: {
-        enabled: Boolean,
-        value: Number
-      },
-      pump_4: {
-        enabled: Boolean,
-        value: Number
-      },
-      pump_5: {
-        enabled: Boolean,
-        value: Number
-      }
+      pump_1: Number,
+      pump_2: Number,
+      pump_3: Number,
+      pump_4: Number,
+      pump_5: Number
     }
   },
   alarm_min: Number,
@@ -75,17 +56,43 @@ const waterTempSensor = mongoose.Schema({
   alarm_max: Number
 }, { _id: false });
 
+const reservoirSettings = mongoose.Schema({
+  reservoir_size: Number,
+  is_control: Boolean,
+  water_replacement_interval: Number
+}, { _id: false });
+
+const growLightsSettings = mongoose.Schema({
+  lights_on: String,
+  lights_off: String,
+}, { _id: false });
+
+const irrigationSettings = mongoose.Schema({
+  on_interval: Number,
+  off_interval: Number,
+}, { _id: false });
+
 const settings = mongoose.Schema({
   ph: phSensor,
   ec: ecSensor,
-  water_temp: waterTempSensor
+  water_temp: waterTempSensor,
+  grow_lights: growLightsSettings,
+  irrigation: irrigationSettings,
+  reservoir: reservoirSettings
 }, { _id: false });
+
+const powerOutlets = mongoose.Schema({
+  id: Number,
+  name: String,
+  logo: String  
+})
 
 const fertigationSystemSettings = mongoose.Schema({
     name: String, 
     type: String,
     settings: settings,
     topicID: String,
+    power_outlets: [powerOutlets],
     device_started: Boolean
 }); 
 
