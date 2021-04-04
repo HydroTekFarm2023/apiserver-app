@@ -10,10 +10,8 @@ const phSensor = mongoose.Schema({
     tgt: Number,
     dose_time: Number,
     dose_interv: Number,
-    pumps: {
-      ph_up: Boolean,
-      ph_down: Boolean
-    }
+    up_ctrl: Boolean,
+    down_ctrl: Boolean
   },
   alarm_min: Number,
   alarm_max: Number
