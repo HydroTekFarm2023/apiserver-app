@@ -60,9 +60,15 @@ const reservoirSettings = mongoose.Schema({
   water_replacement_interval: Number
 }, { _id: false });
 
+const growLightsPowerOutlets = mongoose.Schema({
+  name: String,
+  is_control: Boolean
+}, { _id: false });
+
 const growLightsSettings = mongoose.Schema({
   lights_on: String,
   lights_off: String,
+  power_outlets: [growLightsPowerOutlets]
 }, { _id: false });
 
 const irrigationSettings = mongoose.Schema({
@@ -83,7 +89,7 @@ const powerOutlets = mongoose.Schema({
   id: Number,
   name: String,
   logo: String  
-})
+}, { _id: false })
 
 const fertigationSystemSettings = mongoose.Schema({
     name: String, 

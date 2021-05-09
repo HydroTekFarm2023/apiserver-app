@@ -54,7 +54,7 @@ app.get('/fertigation-system-settings/find/:id', (req, res, next) => {
 
 app.put('/fertigation-system-settings/update/:id', (req, res, next) => {
     FertigationSystemSettings.updateOne({ _id: req.params.id }, 
-        { $set: { name: req.body.name, type: req.body.type, settings: req.body.settings, device_started: req.body.device_started } })
+        { $set: { name: req.body.name, type: req.body.type, settings: req.body.settings, device_started: req.body.device_started, power_outlets: req.body.power_outlets } })
     .then(() => {
         res.status(200).json({
             message: "success"

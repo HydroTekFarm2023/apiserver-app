@@ -5,6 +5,7 @@
   "main": "app/server.js",
   "scripts": {
     "serverstart": "nodemon server.js",
+    "prod": "nodemon server.js --prod",
     "start": "node server.js"
   },
   "author": "Ajay Arumugam",
