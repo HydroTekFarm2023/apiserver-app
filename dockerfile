@@ -20,10 +20,5 @@ RUN npm install
 ENV NODE_ENV=production
 EXPOSE 3000
 RUN npm i nodemon -g
-<<<<<<< HEAD
-#CMD [ "npm" , "run" , "prod" ]
-CMD ["/bin/sh"]
-=======
 CMD [ "npm" , "run" , "serverstart" ]
 #CMD ["/bin/sh"]
->>>>>>> 77818d9d82617f81dc591f2430cac6cee0020a15
