@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const camera = require('./camera').schema;
 
 const phSensor = mongoose.Schema({
   name: String,
@@ -89,7 +90,8 @@ const powerOutlets = mongoose.Schema({
   id: Number,
   name: String,
   logo: String  
-}, { _id: false })
+}, { _id: false });
+
 
 const fertigationSystemSettings = mongoose.Schema({
     name: String, 
@@ -97,6 +99,7 @@ const fertigationSystemSettings = mongoose.Schema({
     settings: settings,
     topicID: String,
     power_outlets: [powerOutlets],
+    cameras: [camera],
     device_started: Boolean
 }); 
 
