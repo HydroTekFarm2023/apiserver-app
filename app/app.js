@@ -7,7 +7,10 @@ const FertigationSystemSettings = require("./fertigation-system-settings");
 const ClimateControllerSettings = require("./climate-controller-settings");
 const PlantSettings = require("./plant");
 
-mongoose.connect('mongodb+srv://admin:Kansas2020!m@cluster0-x5wba.gcp.mongodb.net/test?retryWrites=true&w=majority').then(() => {
+dbName = process.env.DB_NAME;
+console.log(dbName);
+
+mongoose.connect('mongodb+srv://admin:Kansas2020!m@cluster0-x5wba.gcp.mongodb.net/' + dbName + '?retryWrites=true&w=majority').then(() => {
     console.log("connected to database");
 }).catch((error) => {
     console.log(error);
