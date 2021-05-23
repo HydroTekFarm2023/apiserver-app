@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const camera = require('./camera').schema;
 
 const airTempSensor = mongoose.Schema({
     monit_only: Boolean,
@@ -38,7 +39,8 @@ const climateControllerSettings = mongoose.Schema({
     type: String,
     settings: settings,
     topicID: String,
-    device_started: Boolean
+    device_started: Boolean,
+    cameras: [camera]
 }); 
 
 module.exports = mongoose.model('climate_controller_settings', climateControllerSettings);

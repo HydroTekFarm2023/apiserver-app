@@ -31,6 +31,7 @@ app.post('/fertigation-system-settings/create', (req, res, next) => {
         name: req.body.name,
         type: "fertigation-system",
         settings: req.body.settings,
+        camera: req.body.camera,
         device_started: req.body.device_started
     });
     fertigationSystemSettings.save().then(() => {
@@ -55,7 +56,7 @@ app.get('/fertigation-system-settings/find/:id', (req, res, next) => {
 app.put('/fertigation-system-settings/update/:id', (req, res, next) => {
     console.log(req.body.settings);
     FertigationSystemSettings.updateOne({ _id: req.params.id }, 
-        { $set: { name: req.body.name, type: req.body.type, settings: req.body.settings, device_started: req.body.device_started, power_outlets: req.body.power_outlets } })
+        { $set: { name: req.body.name, type: req.body.type, settings: req.body.settings, device_started: req.body.device_started, power_outlets: req.body.power_outlets, cameras: req.body.cameras } })
     .then(() => {
         res.status(200).json({
             message: "success"
@@ -68,7 +69,8 @@ app.post('/climate-controller-settings/create', (req, res, next) => {
         name: req.body.name,
         type: "climate-controller",
         settings: req.body.settings,
-        device_started: req.body.device_started
+        device_started: req.body.device_started,
+        cameras: req.body.cameras
     });
     climateControllerSettings.save().then(() => {
         res.status(201).json(climateControllerSettings);
@@ -91,7 +93,7 @@ app.get('/climate-controller-settings/find', (req, res, next) => {
 
 app.put('/climate-controller-settings/update/:id', (req, res, next) => {
     ClimateControllerSettings.updateOne({ _id: req.params.id }, 
-        { $set: { name: req.body.name, type: req.body.type, settings: req.body.settings, device_started: req.body.device_started } })
+        { $set: { name: req.body.name, type: req.body.type, settings: req.body.settings, device_started: req.body.device_started, cameras: req.body.cameras } })
     .then(() => {
         res.status(200).json({
             message: "success"
