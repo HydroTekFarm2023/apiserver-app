@@ -32,6 +32,7 @@ app.post('/fertigation-system-settings/create', (req, res, next) => {
         type: "fertigation-system",
         settings: req.body.settings,
         camera: req.body.camera,
+        power_outlets: req.body.power_outlets,
         device_started: req.body.device_started
     });
     fertigationSystemSettings.save().then(() => {
@@ -70,6 +71,7 @@ app.post('/climate-controller-settings/create', (req, res, next) => {
         type: "climate-controller",
         settings: req.body.settings,
         device_started: req.body.device_started,
+        power_outlets: req.body.power_outlets,
         cameras: req.body.cameras
     });
     climateControllerSettings.save().then(() => {
