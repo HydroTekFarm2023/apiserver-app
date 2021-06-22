@@ -92,7 +92,6 @@ const powerOutlets = mongoose.Schema({
   logo: String  
 }, { _id: false });
 
-
 const fertigationSystemSettings = mongoose.Schema({
     name: String, 
     type: String,

@@ -31,6 +31,7 @@ app.post('/fertigation-system-settings/create', (req, res, next) => {
         name: req.body.name,
         type: "fertigation-system",
         settings: req.body.settings,
+        topicID: req.body.topicID,
         camera: req.body.camera,
         power_outlets: req.body.power_outlets,
         device_started: req.body.device_started
@@ -70,6 +71,7 @@ app.post('/climate-controller-settings/create', (req, res, next) => {
         name: req.body.name,
         type: "climate-controller",
         settings: req.body.settings,
+        topicID: req.body.topicID,
         device_started: req.body.device_started,
         power_outlets: req.body.power_outlets,
         cameras: req.body.cameras
@@ -94,8 +96,9 @@ app.get('/climate-controller-settings/find', (req, res, next) => {
 });
 
 app.put('/climate-controller-settings/update/:id', (req, res, next) => {
+    console.log(req.body);
     ClimateControllerSettings.updateOne({ _id: req.params.id }, 
-        { $set: { name: req.body.name, type: req.body.type, settings: req.body.settings, device_started: req.body.device_started, cameras: req.body.cameras } })
+        { $set: { name: req.body.name, type: req.body.type, settings: req.body.settings, power_outlets: req.body.power_outlets, device_started: req.body.device_started, cameras: req.body.cameras } })
     .then(() => {
         res.status(200).json({
             message: "success"
