@@ -6,6 +6,7 @@ const app = express();
 const FertigationSystemSettings = require("./fertigation-system-settings");
 const ClimateControllerSettings = require("./climate-controller-settings");
 const PlantSettings = require("./plant");
+const SensorData = require("./sensor_data");
 
 mongoose.connect('mongodb+srv://admin:Kansas2020!m@cluster0-x5wba.gcp.mongodb.net/test?retryWrites=true&w=majority').then(() => {
     console.log("connected to database");
@@ -118,5 +119,77 @@ app.post('/create-plant', (req, res, next) => {
         message: "success"
     });
 });
+
+
+//Getting sensor data
+app.get('/get_all/:topicID/:start_date/:end_date', (req, res, next) => {
+    
+    SensorData.aggregate([
+        {$match:{'topicID':req.params.topicID}},
+        {$unwind:"$samples"},
+        {$unwind:"$samples.sensors"},
+        {$match:{"samples.time":{$gte:new Date(req.params.start_date)}}},
+        {$match:{"samples.time":{$lt:new Date(req.params.end_date)}}},
+        {$group:{
+            "_id":'$samples.time',
+            "sensors":{'$addToSet':'$samples.sensors'},
+        }},
+        {$sort:{'_id':1}}                    
+    ])
+    .then(documents => {
+        res.status(200).json({
+            sensorLess: new Date(req.params.start_date),
+            sensorGreater: new Date(req.params.end_date),
+            sensor_info: documents
+        });
+    })
+});
+
+//--------------------------generating sensor test data - do not use in actual server----------------------------------------
+
+function generatephRandom(){
+    var phMin = 6;
+    var phMax = 9;
+    var random = (Math.random() * (+phMax - +phMin) + +phMin).toFixed(1); 
+    return random
+}
+
+function generateecRandom(){
+    var phMin = 9;
+    var phMax = 11;
+    var random = (Math.random() * (+phMax - +phMin) + +phMin).toFixed(1); 
+    return random
+}
+
+function generatetempRandom(){
+    var phMin = 20;
+    var phMax = 27;
+    var random = (Math.random() * (+phMax - +phMin) + +phMin).toFixed(1); 
+    return random
+}
+
+app.post('/insert_data',(req, res, next) =>{
+    
+    const sensor_data = new SensorData({
+        topicID: "test0", //Fake ID for fake data
+        firstTime:new Date('2020-09-01T10:00:00.000+00:00'),
+        lastTime:new Date('2020-09-01T10:02:00.000+00:00'),
+        nsamples: 5,
+        samples:[
+            {TimeStamp:new Date('2020-09-01T10:00:00.000+00:00'),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'temp',value:generatetempRandom()}]},
+            {TimeStamp:new Date('2020-09-01T10:00:30.000+00:00'),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'temp',value:generatetempRandom()}]},
+            {TimeStamp:new Date('2020-09-01T10:01:00.000+00:00'),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'temp',value:generatetempRandom()}]},
+            {TimeStamp:new Date('2020-09-01T10:01:30.000+00:00'),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'temp',value:generatetempRandom()}]},
+            {TimeStamp:new Date('2020-09-01T10:02:00.000+00:00'),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'temp',value:generatetempRandom()}]},
+        ]
+    });
+    sensor_data.save();
+    res.status(200).json({
+        message:"success"
+    });
+});
+
+
+
 
 module.exports = app;
