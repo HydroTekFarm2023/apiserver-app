@@ -9,15 +9,14 @@ const settings = mongoose.Schema({
     night_target_value: Number
 }, { _id : false });
 
+const sensor = mongoose.Schema({
+    sensor_name: String,
+    settings: settings
+}, { _id : false });
+
 const plant_settings = mongoose.Schema({
     name: String,
-    settings: {
-        air_temperature: settings,
-        humidity: settings,
-        ec: settings,
-        ph: settings,
-        water_temperature: settings
-    }
+    sensor_array: [sensor]
 });
 
 module.exports = mongoose.model('Plant_Settings', plant_settings);

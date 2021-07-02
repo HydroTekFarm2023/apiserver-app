@@ -78,6 +78,7 @@ app.put('/fertigation-system-settings/device-started/:id', (req, res, next) => {
 });
 
 app.post('/climate-controller-settings/create', (req, res, next) => {
+    console.log("asd");
     const climateControllerSettings = new ClimateControllerSettings({
         name: req.body.name,
         type: "climate-controller",
@@ -128,8 +129,17 @@ app.put('/climate-controller-settings/device-started/:id', (req, res, next) => {
     });
 });
 
-app.get('/get-plants', (req, res, next) => {
+app.get('/plants', (req, res, next) => {
     PlantSettings.find()
+    .then(documents => {
+        res.status(200).json(documents);
+    })
+});
+
+app.get('/plants/:plantName', (req, res, next) => {
+    PlantSettings.findOne({
+        name: req.params.plantName
+    })
     .then(documents => {
         res.status(200).json(documents);
     })
@@ -138,7 +148,7 @@ app.get('/get-plants', (req, res, next) => {
 app.post('/create-plant', (req, res, next) => {
     const plantSettings = new PlantSettings({
         name: req.body.name,
-        settings: req.body.settings
+        sensor_array: req.body.sensor_array
     });
     plantSettings.save();
     res.status(200).json({
