@@ -122,7 +122,9 @@ app.post('/create-plant', (req, res, next) => {
 
 
 //Getting sensor data
-app.get('/get_all/:topicID/:start_date/:end_date', (req, res, next) => {
+//topicID: 5-digit topic ID for Device
+//start_date/end_date: in ISO format, UTC time (?). In format like (2020-07-07T10:00:00.000Z)
+app.get('/get_sensor_data/:topicID/:start_date/:end_date', (req, res, next) => {
     
     SensorData.aggregate([
         {$match:{'topicID':req.params.topicID}},
@@ -163,6 +165,9 @@ app.get('/get_all/:topicID/:start_date/:end_date', (req, res, next) => {
 //PH 4 - 7
 //EC 1500 - 4000
 //Temp 17 - 23
+//AirTemp 20 - 30
+//Humidity 40 - 60 (no units in backend)
+//CO2 1000 - 1300
 
 function generatephRandom(){
     var phMin = 4;
@@ -185,9 +190,32 @@ function generatetempRandom(){
     return random
 }
 
+function generateAirTempRandom(){
+    var phMin = 20;
+    var phMax = 30;
+    var random = (Math.random() * (+phMax - +phMin) + +phMin).toFixed(1); 
+    return random
+}
+
+//Humidity: No percentage units in back end!
+function generateHumidityRandom(){
+    var phMin = 40;
+    var phMax = 60;
+    var random = (Math.random() * (+phMax - +phMin) + +phMin).toFixed(1); 
+    return random
+}
+
+function generateCO2Random(){
+    var phMin = 1000;
+    var phMax = 1300;
+    var random = (Math.random() * (+phMax - +phMin) + +phMin).toFixed(1); 
+    return random
+}
+
+//This has sensor data for *Fertigation systems*.
 //saves one set of 5 data points beginning at firstTime_in, with intervalSec_in seconds between them, using topicID_in as the topicID.
 //change nsamples to change number of points in a group
-function generateOneSensorData(firstTime_in, intervalSec_in, topicID_in){
+function generateOneSensorDataFert(firstTime_in, intervalSec_in, topicID_in){
     date = new Date(firstTime_in);
     dateEnd = new Date(firstTime_in);
     dateEnd.setTime(dateEnd.getTime() + 4000 * intervalSec_in);
@@ -197,11 +225,36 @@ function generateOneSensorData(firstTime_in, intervalSec_in, topicID_in){
         last_time: dateEnd,
         nsamples: 5,
         samples:[
-            {time:firstTime_in                                        ,sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water temp',value:generatetempRandom()}]},
-            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water temp',value:generatetempRandom()}]},
-            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water temp',value:generatetempRandom()}]},
-            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water temp',value:generatetempRandom()}]},
-            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water temp',value:generatetempRandom()}]},
+            {time:firstTime_in                                        ,sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water_temp',value:generatetempRandom()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water_temp',value:generatetempRandom()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water_temp',value:generatetempRandom()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water_temp',value:generatetempRandom()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water_temp',value:generatetempRandom()}]},
+        ]
+    });
+    date.setTime(date.getTime() + 1000 * intervalSec_in);
+    sensor_data.save();
+}
+
+
+//This has sensor data for *Climate control systems*.
+//saves one set of 5 data points beginning at firstTime_in, with intervalSec_in seconds between them, using topicID_in as the topicID.
+//change nsamples to change number of points in a group
+function generateOneSensorDataClim(firstTime_in, intervalSec_in, topicID_in){
+    date = new Date(firstTime_in);
+    dateEnd = new Date(firstTime_in);
+    dateEnd.setTime(dateEnd.getTime() + 4000 * intervalSec_in);
+    const sensor_data = new SensorData({
+        topicID: topicID_in,
+        first_time: firstTime_in,
+        last_time: dateEnd,
+        nsamples: 5,
+        samples:[
+            {time:firstTime_in                                        ,sensors:[{name:'air_temp',value:generateAirTempRandom()},{name:'humidity',value:generateHumidityRandom()},{name:'co2',value:generateCO2Random()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'air_temp',value:generateAirTempRandom()},{name:'humidity',value:generateHumidityRandom()},{name:'co2',value:generateCO2Random()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'air_temp',value:generateAirTempRandom()},{name:'humidity',value:generateHumidityRandom()},{name:'co2',value:generateCO2Random()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'air_temp',value:generateAirTempRandom()},{name:'humidity',value:generateHumidityRandom()},{name:'co2',value:generateCO2Random()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'air_temp',value:generateAirTempRandom()},{name:'humidity',value:generateHumidityRandom()},{name:'co2',value:generateCO2Random()}]},
         ]
     });
     date.setTime(date.getTime() + 1000 * intervalSec_in);
@@ -209,19 +262,31 @@ function generateOneSensorData(firstTime_in, intervalSec_in, topicID_in){
 }
 //make below function really nice bc people use it for dummy data
 
-//start, duration (s), interval, topicID, Json body?
+//generates big amounts of data based on parameters:
+//topicID: 5-digit topic ID
+//start_date: Starting date in UTC, ISO format: like (2020-07-07T10:00:00.000Z)
+//interval: Time between each data point (in seconds)
+//duration: Total time of sensor data to generate (in seconds) - if interval = 10s and duration = 30s, there would be 3 groups of data
 
-//insert_fertigation_data, same with insert_climate_controller_data
-//See creation of clim/fert systems above
-
-//gen. a month of data (6 per minute = 8640 per day = 259200 per month (30 day month))
-app.post('/insert_data/:topicID/:start_date/:interval/:duration',(req, res, next) =>{
-    date = new Date(req.params.start_date);
+app.post('/insert_fertigation_data/:topicID/:start_date/:interval/:duration',(req, res, next) =>{
+    date = new Date(req.params.start_date); //this date is passed to the helper function as a *reference*. Therefore, all Date operations are done inside the helper functions.
     for(let i = 0; i < req.params.duration / req.params.interval; ++i){
-        generateOneSensorData(date, req.params.interval, req.params.topicID);
+        generateOneSensorDataFert(date, req.params.interval, req.params.topicID);
     }
     res.status(200).json({
-        message:"Successfully added data",
+        message:"Successfully added Fertigation data",
+        topicID: req.params.topicID,
+        data_groups: req.params.duration / req.params.interval
+    });
+});
+
+app.post('/insert_climate_controller_data/:topicID/:start_date/:interval/:duration',(req, res, next) =>{
+    date = new Date(req.params.start_date); //this date is passed to the helper function as a *reference*. Therefore, all Date operations are done inside the helper functions.
+    for(let i = 0; i < req.params.duration / req.params.interval; ++i){
+        generateOneSensorDataClim(date, req.params.interval, req.params.topicID);
+    }
+    res.status(200).json({
+        message:"Successfully added Climate Controller data",
         topicID: req.params.topicID,
         data_groups: req.params.duration / req.params.interval
     });
