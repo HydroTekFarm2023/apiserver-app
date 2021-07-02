@@ -137,59 +137,94 @@ app.get('/get_all/:topicID/:start_date/:end_date', (req, res, next) => {
         {$sort:{'_id':1}}                    
     ])
     .then(documents => {
-        res.status(200).json({
-            sensorLess: new Date(req.params.start_date),
-            sensorGreater: new Date(req.params.end_date),
-            sensor_info: documents
-        });
+        console.warn(documents.length)
+        if(documents.length == 0){
+            res.status(200).json({
+                firstTimestamp: null,
+                lastTimestamp: null,
+                length: 0,
+                sensor_info: []
+            });
+        }else{
+            res.status(200).json({
+                firstTimestamp: documents[0]._id,
+                lastTimestamp: documents[documents.length - 1]._id,
+                length: documents.length,
+                sensor_info: documents
+            });
+        }
     })
 });
 
 //--------------------------generating sensor test data - do not use in actual server----------------------------------------
 
+
+//ranges
+//PH 4 - 7
+//EC 1500 - 4000
+//Temp 17 - 23
+
 function generatephRandom(){
-    var phMin = 6;
-    var phMax = 9;
+    var phMin = 4;
+    var phMax = 7;
     var random = (Math.random() * (+phMax - +phMin) + +phMin).toFixed(1); 
     return random
 }
 
 function generateecRandom(){
-    var phMin = 9;
-    var phMax = 11;
+    var phMin = 1500;
+    var phMax = 4000;
     var random = (Math.random() * (+phMax - +phMin) + +phMin).toFixed(1); 
     return random
 }
 
 function generatetempRandom(){
-    var phMin = 20;
-    var phMax = 27;
+    var phMin = 17;
+    var phMax = 23;
     var random = (Math.random() * (+phMax - +phMin) + +phMin).toFixed(1); 
     return random
 }
 
-app.post('/insert_data',(req, res, next) =>{
-    
+//saves one set of 5 data points beginning at firstTime_in, with intervalSec_in seconds between them, using topicID_in as the topicID.
+//change nsamples to change number of points in a group
+function generateOneSensorData(firstTime_in, intervalSec_in, topicID_in){
+    date = new Date(firstTime_in);
+    dateEnd = new Date(firstTime_in);
+    dateEnd.setTime(dateEnd.getTime() + 4000 * intervalSec_in);
     const sensor_data = new SensorData({
-        topicID: "test0", //Fake ID for fake data
-        firstTime:new Date('2020-09-01T10:00:00.000+00:00'),
-        lastTime:new Date('2020-09-01T10:02:00.000+00:00'),
+        topicID: topicID_in,
+        first_time: firstTime_in,
+        last_time: dateEnd,
         nsamples: 5,
         samples:[
-            {TimeStamp:new Date('2020-09-01T10:00:00.000+00:00'),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'temp',value:generatetempRandom()}]},
-            {TimeStamp:new Date('2020-09-01T10:00:30.000+00:00'),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'temp',value:generatetempRandom()}]},
-            {TimeStamp:new Date('2020-09-01T10:01:00.000+00:00'),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'temp',value:generatetempRandom()}]},
-            {TimeStamp:new Date('2020-09-01T10:01:30.000+00:00'),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'temp',value:generatetempRandom()}]},
-            {TimeStamp:new Date('2020-09-01T10:02:00.000+00:00'),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'temp',value:generatetempRandom()}]},
+            {time:firstTime_in                                        ,sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water temp',value:generatetempRandom()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water temp',value:generatetempRandom()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water temp',value:generatetempRandom()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water temp',value:generatetempRandom()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water temp',value:generatetempRandom()}]},
         ]
     });
+    date.setTime(date.getTime() + 1000 * intervalSec_in);
     sensor_data.save();
+}
+//make below function really nice bc people use it for dummy data
+
+//start, duration (s), interval, topicID, Json body?
+
+//insert_fertigation_data, same with insert_climate_controller_data
+//See creation of clim/fert systems above
+
+//gen. a month of data (6 per minute = 8640 per day = 259200 per month (30 day month))
+app.post('/insert_data/:topicID/:start_date/:interval/:duration',(req, res, next) =>{
+    date = new Date(req.params.start_date);
+    for(let i = 0; i < req.params.duration / req.params.interval; ++i){
+        generateOneSensorData(date, req.params.interval, req.params.topicID);
+    }
     res.status(200).json({
-        message:"success"
+        message:"Successfully added data",
+        topicID: req.params.topicID,
+        data_groups: req.params.duration / req.params.interval
     });
 });
-
-
-
 
 module.exports = app;
