@@ -57,8 +57,9 @@ const waterTempSensor = mongoose.Schema({
 
 const reservoirSettings = mongoose.Schema({
   reservoir_size: Number,
+  replace_date: String,
   is_control: Boolean,
-  water_replacement_interval: Number
+  replace_interv: Number
 }, { _id: false });
 
 const growLightsPowerOutlets = mongoose.Schema({
