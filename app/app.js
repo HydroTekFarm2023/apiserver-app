@@ -7,11 +7,16 @@ const FertigationSystemSettings = require("./fertigation-system-settings");
 const ClimateControllerSettings = require("./climate-controller-settings");
 const PlantSettings = require("./plant");
 
-mongoose.connect('mongodb+srv://admin:Kansas2020!m@cluster0-x5wba.gcp.mongodb.net/test?retryWrites=true&w=majority').then(() => {
-    console.log("connected to database");
+const MONGO_HOST = process.env.MONGO_HOST;
+const MONGO_USER = process.env.MONGO_USER;
+const MONGO_PWD = process.env.MONGO_PWD;
+const MONGO_DB_NAME = process.env.MONGO_DB_NAME;
+
+mongoose.connect('mongodb+srv://' + MONGO_USER + ':' + MONGO_PWD + '@' + MONGO_HOST + '/' + MONGO_DB_NAME + '?retryWrites=true&w=majority').then(() => {
+    console.log("Connected to DB: " + MONGO_DB_NAME);
 }).catch((error) => {
+    console.log("Connection Failed");
     console.log(error);
-    console.log("connection failed");
 });
 
 app.use(bodyParser.json());
@@ -54,7 +59,6 @@ app.get('/fertigation-system-settings/find/:id', (req, res, next) => {
 });
 
 app.put('/fertigation-system-settings/update/:id', (req, res, next) => {
-    console.log(req.body.settings);
     FertigationSystemSettings.updateOne({ _id: req.params.id }, 
         { $set: { name: req.body.name, type: req.body.type, settings: req.body.settings, device_started: req.body.device_started, power_outlets: req.body.power_outlets, cameras: req.body.cameras } })
     .then(() => {

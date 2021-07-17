@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hydrotekapp-deployment
+  labels:
+    app: hydrotekapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hydrotekapiserver
+  template:
+    metadata:
+      labels:
+        app: hydrotekapiserver
+    spec:
+      containers:
+      - name: hydroapiserver 
+        image: gcr.io/hydrotek-286213/hydroapiserver:v1.0
+        env:
+        - name: MONGO_HOST
+          valueFrom:
+            secretKeyRef:
+              name: mongodbdevcreds
+              key: MONGO_HOST
+        - name: MONGO_USER
+          valueFrom:
+            secretKeyRef:
+              name: mongodbdevcreds
+              key: MONGO_USER
+        - name: MONGO_PWD
+          valueFrom:
+            secretKeyRef:
+              name: mongodbdevcreds
+              key: MONGO_PWD
+        - name: MONGO_DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: mongodbdevcreds
+              key: MONGO_DB_NAME      
+        - name: NODE_ENV
+          valueFrom:
+            configMapRef:
+              name: apiserverenv
+              key: NODE_ENV
+              
+        ports:
+        - containerPort: 5046
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
