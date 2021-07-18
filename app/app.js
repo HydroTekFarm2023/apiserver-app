@@ -36,7 +36,9 @@ app.post('/fertigation-system-settings/create', (req, res, next) => {
         name: req.body.name,
         type: "fertigation-system",
         settings: req.body.settings,
+        topicID: req.body.topicID,
         camera: req.body.camera,
+        power_outlets: req.body.power_outlets,
         device_started: req.body.device_started
     });
     fertigationSystemSettings.save().then(() => {
@@ -68,12 +70,26 @@ app.put('/fertigation-system-settings/update/:id', (req, res, next) => {
     });
 });
 
+app.put('/fertigation-system-settings/device-started/:id', (req, res, next) => {
+    console.log(req.body);
+    FertigationSystemSettings.updateOne({ _id: req.params.id }, 
+        { $set: { device_started: req.body.device_started } })
+    .then(() => {
+        res.status(200).json({
+            message: "success"
+        });
+    });
+});
+
 app.post('/climate-controller-settings/create', (req, res, next) => {
+    console.log("asd");
     const climateControllerSettings = new ClimateControllerSettings({
         name: req.body.name,
         type: "climate-controller",
         settings: req.body.settings,
+        topicID: req.body.topicID,
         device_started: req.body.device_started,
+        power_outlets: req.body.power_outlets,
         cameras: req.body.cameras
     });
     climateControllerSettings.save().then(() => {
@@ -96,8 +112,9 @@ app.get('/climate-controller-settings/find', (req, res, next) => {
 });
 
 app.put('/climate-controller-settings/update/:id', (req, res, next) => {
+    console.log(req.body);
     ClimateControllerSettings.updateOne({ _id: req.params.id }, 
-        { $set: { name: req.body.name, type: req.body.type, settings: req.body.settings, device_started: req.body.device_started, cameras: req.body.cameras } })
+        { $set: { name: req.body.name, type: req.body.type, settings: req.body.settings, power_outlets: req.body.power_outlets, device_started: req.body.device_started, cameras: req.body.cameras } })
     .then(() => {
         res.status(200).json({
             message: "success"
@@ -105,8 +122,28 @@ app.put('/climate-controller-settings/update/:id', (req, res, next) => {
     });
 });
 
-app.get('/get-plants', (req, res, next) => {
+app.put('/climate-controller-settings/device-started/:id', (req, res, next) => {
+    console.log(req.body);
+    ClimateControllerSettings.updateOne({ _id: req.params.id }, 
+        { $set: { device_started: req.body.device_started } })
+    .then(() => {
+        res.status(200).json({
+            message: "success"
+        });
+    });
+});
+
+app.get('/plants', (req, res, next) => {
     PlantSettings.find()
+    .then(documents => {
+        res.status(200).json(documents);
+    })
+});
+
+app.get('/plants/:plantName', (req, res, next) => {
+    PlantSettings.findOne({
+        name: req.params.plantName
+    })
     .then(documents => {
         res.status(200).json(documents);
     })
@@ -115,7 +152,7 @@ app.get('/get-plants', (req, res, next) => {
 app.post('/create-plant', (req, res, next) => {
     const plantSettings = new PlantSettings({
         name: req.body.name,
-        settings: req.body.settings
+        sensor_array: req.body.sensor_array
     });
     plantSettings.save();
     res.status(200).json({
