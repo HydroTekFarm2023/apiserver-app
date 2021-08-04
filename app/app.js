@@ -129,7 +129,7 @@ app.get('/get_sensor_data/:topicID/:start_date/:end_date', (req, res, next) => {
     SensorData.aggregate([
         {$match:{'topicID':req.params.topicID}},
         {$unwind:"$samples"},
-        {$unwind:"$samples.sensors"},
+        {$unwind:"$samples.sensors"}, //Think this opens the objects so you can match conditions on sub-objects...?
         {$match:{"samples.time":{$gte:new Date(req.params.start_date)}}},
         {$match:{"samples.time":{$lt:new Date(req.params.end_date)}}},
         {$group:{
@@ -140,7 +140,7 @@ app.get('/get_sensor_data/:topicID/:start_date/:end_date', (req, res, next) => {
     ])
     .then(documents => {
         console.warn(documents.length)
-        if(documents.length == 0){
+        if(documents.length == 0){//No result
             res.status(200).json({
                 firstTimestamp: null,
                 lastTimestamp: null,
@@ -148,7 +148,7 @@ app.get('/get_sensor_data/:topicID/:start_date/:end_date', (req, res, next) => {
                 sensor_info: []
             });
         }else{
-            res.status(200).json({
+            res.status(200).json({//Success!
                 firstTimestamp: documents[0]._id,
                 lastTimestamp: documents[documents.length - 1]._id,
                 length: documents.length,
@@ -157,6 +157,21 @@ app.get('/get_sensor_data/:topicID/:start_date/:end_date', (req, res, next) => {
         }
     })
 });
+
+//removing sensor test data by TopicID -- Do NOT use in actual server
+app.post('/remove_all_sensor_data/:topicID', (req, res, next) => {
+    SensorData.deleteMany({topicID: req.params.topicID}).then(function(){
+        console.log("Deleted all data for ", req.params.topicID);
+        res.status(200).json({
+            "message": "Successfully removed all data for topic ID",
+            "topicID": req.params.topicID
+        })
+    }).catch(function(error){
+        console.log(error);
+    })
+});
+
+
 
 //--------------------------generating sensor test data - do not use in actual server----------------------------------------
 
