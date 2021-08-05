@@ -125,7 +125,7 @@ app.post('/create-plant', (req, res, next) => {
 //topicID: 5-digit topic ID for Device
 //start_date/end_date: in ISO format, UTC time (?). In format like (2020-07-07T10:00:00.000Z)
 app.get('/get_sensor_data/:topicID/:start_date/:end_date', (req, res, next) => {
-    
+    let startTime = new Date();
     SensorData.aggregate([
         {$match:{'topicID':req.params.topicID}},
         {$unwind:"$samples"},
@@ -136,7 +136,7 @@ app.get('/get_sensor_data/:topicID/:start_date/:end_date', (req, res, next) => {
             "_id":'$samples.time',
             "sensors":{'$addToSet':'$samples.sensors'},
         }},
-        {$sort:{'_id':1}}                    
+        {$sort:{'_id':1}}              
     ])
     .then(documents => {
         console.warn(documents.length)
@@ -148,6 +148,8 @@ app.get('/get_sensor_data/:topicID/:start_date/:end_date', (req, res, next) => {
                 sensor_info: []
             });
         }else{
+            let endTime = new Date();
+            console.log("Aggregation: took", endTime.getTime() - startTime.getTime(), "millis for", documents.length, "entries");
             res.status(200).json({//Success!
                 firstTimestamp: documents[0]._id,
                 lastTimestamp: documents[documents.length - 1]._id,
@@ -155,6 +157,8 @@ app.get('/get_sensor_data/:topicID/:start_date/:end_date', (req, res, next) => {
                 sensor_info: documents
             });
         }
+    }).catch(function(error){
+        console.log(error);
     })
 });
 
