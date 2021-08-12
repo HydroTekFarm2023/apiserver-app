@@ -6,6 +6,7 @@ const app = express();
 const FertigationSystemSettings = require("./fertigation-system-settings");
 const ClimateControllerSettings = require("./climate-controller-settings");
 const PlantSettings = require("./plant");
+const SensorData = require("./sensor_data");
 
 const MONGO_HOST = process.env.MONGO_HOST;
 const MONGO_USER = process.env.MONGO_USER;
@@ -157,6 +158,197 @@ app.post('/create-plant', (req, res, next) => {
     plantSettings.save();
     res.status(200).json({
         message: "success"
+    });
+});
+
+
+//Getting sensor data
+//topicID: 5-digit topic ID for Device
+//start_date/end_date: in ISO format, UTC time (?). In format like (2020-07-07T10:00:00.000Z)
+app.get('/get_sensor_data/:topicID/:start_date/:end_date', (req, res, next) => {
+    let startTime = new Date();
+    SensorData.aggregate([
+        {$match:{'topicID':req.params.topicID}},
+        {$unwind:"$samples"},
+        {$unwind:"$samples.sensors"}, //Think this opens the objects so you can match conditions on sub-objects...?
+        {$match:{"samples.time":{$gte:new Date(req.params.start_date)}}},
+        {$match:{"samples.time":{$lt:new Date(req.params.end_date)}}},
+        {$group:{
+            "_id":'$samples.time',
+            "sensors":{'$addToSet':'$samples.sensors'},
+        }},
+        {$sort:{'_id':1}}              
+    ])
+    .then(documents => {
+        console.warn(documents.length)
+        if(documents.length == 0){//No result
+            res.status(200).json({
+                firstTimestamp: null,
+                lastTimestamp: null,
+                length: 0,
+                sensor_info: []
+            });
+        }else{
+            let endTime = new Date();
+            console.log("Aggregation: took", endTime.getTime() - startTime.getTime(), "millis for", documents.length, "entries");
+            res.status(200).json({//Success!
+                firstTimestamp: documents[0]._id,
+                lastTimestamp: documents[documents.length - 1]._id,
+                length: documents.length,
+                sensor_info: documents
+            });
+        }
+    }).catch(function(error){
+        console.log(error);
+    })
+});
+
+//removing sensor test data by TopicID -- Do NOT use in actual server
+app.post('/remove_all_sensor_data/:topicID', (req, res, next) => {
+    SensorData.deleteMany({topicID: req.params.topicID}).then(function(){
+        console.log("Deleted all data for ", req.params.topicID);
+        res.status(200).json({
+            "message": "Successfully removed all data for topic ID",
+            "topicID": req.params.topicID
+        })
+    }).catch(function(error){
+        console.log(error);
+    })
+});
+
+
+
+//--------------------------generating sensor test data - do not use in actual server----------------------------------------
+
+
+//ranges
+//PH 4 - 7
+//EC 1500 - 4000
+//Temp 17 - 23
+//AirTemp 20 - 30
+//Humidity 40 - 60 (no units in backend)
+//CO2 1000 - 1300
+
+function generatephRandom(){
+    var phMin = 4;
+    var phMax = 7;
+    var random = (Math.random() * (+phMax - +phMin) + +phMin).toFixed(1); 
+    return random
+}
+
+function generateecRandom(){
+    var phMin = 1500;
+    var phMax = 4000;
+    var random = (Math.random() * (+phMax - +phMin) + +phMin).toFixed(1); 
+    return random
+}
+
+function generatetempRandom(){
+    var phMin = 17;
+    var phMax = 23;
+    var random = (Math.random() * (+phMax - +phMin) + +phMin).toFixed(1); 
+    return random
+}
+
+function generateAirTempRandom(){
+    var phMin = 20;
+    var phMax = 30;
+    var random = (Math.random() * (+phMax - +phMin) + +phMin).toFixed(1); 
+    return random
+}
+
+//Humidity: No percentage units in back end!
+function generateHumidityRandom(){
+    var phMin = 40;
+    var phMax = 60;
+    var random = (Math.random() * (+phMax - +phMin) + +phMin).toFixed(1); 
+    return random
+}
+
+function generateCO2Random(){
+    var phMin = 1000;
+    var phMax = 1300;
+    var random = (Math.random() * (+phMax - +phMin) + +phMin).toFixed(1); 
+    return random
+}
+
+//This has sensor data for *Fertigation systems*.
+//saves one set of 5 data points beginning at firstTime_in, with intervalSec_in seconds between them, using topicID_in as the topicID.
+//change nsamples to change number of points in a group
+function generateOneSensorDataFert(firstTime_in, intervalSec_in, topicID_in){
+    date = new Date(firstTime_in);
+    dateEnd = new Date(firstTime_in);
+    dateEnd.setTime(dateEnd.getTime() + 4000 * intervalSec_in);
+    const sensor_data = new SensorData({
+        topicID: topicID_in,
+        first_time: firstTime_in,
+        last_time: dateEnd,
+        nsamples: 5,
+        samples:[
+            {time:firstTime_in                                        ,sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water_temp',value:generatetempRandom()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water_temp',value:generatetempRandom()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water_temp',value:generatetempRandom()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water_temp',value:generatetempRandom()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'ph',value:generatephRandom()},{name:'ec',value:generateecRandom()},{name:'water_temp',value:generatetempRandom()}]},
+        ]
+    });
+    date.setTime(date.getTime() + 1000 * intervalSec_in);
+    sensor_data.save();
+}
+
+
+//This has sensor data for *Climate control systems*.
+//saves one set of 5 data points beginning at firstTime_in, with intervalSec_in seconds between them, using topicID_in as the topicID.
+//change nsamples to change number of points in a group
+function generateOneSensorDataClim(firstTime_in, intervalSec_in, topicID_in){
+    date = new Date(firstTime_in);
+    dateEnd = new Date(firstTime_in);
+    dateEnd.setTime(dateEnd.getTime() + 4000 * intervalSec_in);
+    const sensor_data = new SensorData({
+        topicID: topicID_in,
+        first_time: firstTime_in,
+        last_time: dateEnd,
+        nsamples: 5,
+        samples:[
+            {time:firstTime_in                                        ,sensors:[{name:'air_temp',value:generateAirTempRandom()},{name:'humidity',value:generateHumidityRandom()},{name:'co2',value:generateCO2Random()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'air_temp',value:generateAirTempRandom()},{name:'humidity',value:generateHumidityRandom()},{name:'co2',value:generateCO2Random()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'air_temp',value:generateAirTempRandom()},{name:'humidity',value:generateHumidityRandom()},{name:'co2',value:generateCO2Random()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'air_temp',value:generateAirTempRandom()},{name:'humidity',value:generateHumidityRandom()},{name:'co2',value:generateCO2Random()}]},
+            {time:date.setTime(date.getTime() + 1000 * intervalSec_in),sensors:[{name:'air_temp',value:generateAirTempRandom()},{name:'humidity',value:generateHumidityRandom()},{name:'co2',value:generateCO2Random()}]},
+        ]
+    });
+    date.setTime(date.getTime() + 1000 * intervalSec_in);
+    sensor_data.save();
+}
+//make below function really nice bc people use it for dummy data
+
+//generates big amounts of data based on parameters:
+//topicID: 5-digit topic ID
+//start_date: Starting date in UTC, ISO format: like (2020-07-07T10:00:00.000Z)
+//interval: Time between each data point (in seconds)
+//duration: Total time of sensor data to generate (in seconds) - if interval = 10s and duration = 30s, there would be 3 groups of data
+
+app.post('/insert_fertigation_data/:topicID/:start_date/:interval/:duration',(req, res, next) =>{
+    date = new Date(req.params.start_date); //this date is passed to the helper function as a *reference*. Therefore, all Date operations are done inside the helper functions.
+    for(let i = 0; i < req.params.duration / req.params.interval; ++i){
+        generateOneSensorDataFert(date, req.params.interval, req.params.topicID);
+    }
+    res.status(200).json({
+        message:"Successfully added Fertigation data",
+        topicID: req.params.topicID,
+        data_groups: req.params.duration / req.params.interval
+    });
+});
+
+app.post('/insert_climate_controller_data/:topicID/:start_date/:interval/:duration',(req, res, next) =>{
+    date = new Date(req.params.start_date); //this date is passed to the helper function as a *reference*. Therefore, all Date operations are done inside the helper functions.
+    for(let i = 0; i < req.params.duration / req.params.interval; ++i){
+        generateOneSensorDataClim(date, req.params.interval, req.params.topicID);
+    }
+    res.status(200).json({
+        message:"Successfully added Climate Controller data",
+        topicID: req.params.topicID,
+        data_groups: req.params.duration / req.params.interval
     });
 });
 
