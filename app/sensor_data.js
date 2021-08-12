@@ -16,6 +16,6 @@ const sensor_data = mongoose.Schema({
     last_time: Date,
     nsamples: Number,
     samples: [sample]
-}, {collection: 'tom_sensor_data', versionKey: false});//used for testing, isolate the main database; switch back to sensor_data when done
+}, {collection: 'sensor_data', versionKey: false});//used for testing, isolate the main database; switch back to sensor_data when done
 //versionKey is to disable the '__v' thing in the database objects added
 module.exports = mongoose.model('sensor_data', sensor_data);
