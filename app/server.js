@@ -3,7 +3,7 @@ const app = require("./app");
 var https = require('https');
 var fs = require('fs');
 
-const port = "3000";
+const port = "443";
 
 const onError = error => {
     if (error.syscall !== "listen") {
@@ -30,8 +30,8 @@ const onListening = () => {
 
 if(process.env.NODE_ENV == "production") {
     console.log("Production Environment");
-    let privateKey  = fs.readFileSync('app/certs/privkey.pem', 'utf8');
-    let certificate = fs.readFileSync('app/certs/fullchain.pem', 'utf8');
+    let privateKey  = fs.readFileSync('app/certs/privkey.pem');
+    let certificate = fs.readFileSync('app/certs/fullchain.pem');
     let credentials = {key: privateKey, cert: certificate};
 
     const server = https.createServer(credentials, app);

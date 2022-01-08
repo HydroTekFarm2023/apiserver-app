@@ -178,7 +178,7 @@ app.get('/get_sensor_data/:topicID/:start_date/:end_date', (req, res, next) => {
             "sensors":{'$addToSet':'$samples.sensors'},
         }},
         {$sort:{'_id':1}}              
-    ])
+    ]).allowDiskUse(true)
     .then(documents => {
         console.warn(documents.length)
         if(documents.length == 0){//No result
