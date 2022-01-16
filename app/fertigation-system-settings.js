@@ -100,7 +100,8 @@ const fertigationSystemSettings = mongoose.Schema({
     topicID: String,
     power_outlets: [powerOutlets],
     cameras: [camera],
-    device_started: Boolean
+    device_started: Boolean,
+    version: String
 }); 
 
 module.exports = mongoose.model('fertigation_system_settings', fertigationSystemSettings);

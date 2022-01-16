@@ -53,7 +53,8 @@ const climateControllerSettings = mongoose.Schema({
     topicID: String,
     power_outlets: [powerOutlets],
     cameras: [camera],
-    device_started: Boolean
+    device_started: Boolean,
+    version: String
 }); 
 
 module.exports = mongoose.model('climate_controller_settings', climateControllerSettings);
