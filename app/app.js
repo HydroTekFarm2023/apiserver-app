@@ -7,13 +7,23 @@ const FertigationSystemSettings = require("./fertigation-system-settings");
 const ClimateControllerSettings = require("./climate-controller-settings");
 const PlantSettings = require("./plant");
 const SensorData = require("./sensor_data");
+const PestDetectNotifications = require("./pest-detect-notifications");
+const FungalClassifyNotifications = require("./fungal-classify-notifications");
+const PlantGrowthNotifications = require("./plant-growth-notifications");
+const ThermalNotifications = require("./thermal-notifications");
+const TestNotifications = require("./test-notifications");
+
 
 const MONGO_HOST = process.env.MONGO_HOST;
 const MONGO_USER = process.env.MONGO_USER;
 const MONGO_PWD = process.env.MONGO_PWD;
 const MONGO_DB_NAME = process.env.MONGO_DB_NAME;
 
-mongoose.connect('mongodb+srv://' + MONGO_USER + ':' + MONGO_PWD + '@' + MONGO_HOST + '/' + MONGO_DB_NAME + '?retryWrites=true&w=majority').then(() => {
+
+// console.log(MONGO_HOST);
+// console.log('mongodb+srv://' + MONGO_USER + ':' + MONGO_PWD + '@' + MONGO_HOST + '/' + MONGO_DB_NAME + '?retryWrites=true&w=majority');
+
+mongoose.connect('mongodb+srv://' + MONGO_USER + ':' + MONGO_PWD + '@' + MONGO_HOST + '/' + MONGO_DB_NAME + '?retryWrites=true&w=majority', {useNewUrlParser: true}).then(() => {
     console.log("Connected to DB: " + MONGO_DB_NAME);
 }).catch((error) => {
     console.log("Connection Failed");
@@ -217,6 +227,186 @@ app.post('/remove_all_sensor_data/:topicID', (req, res, next) => {
 });
 
 
+//getting notification data
+//make it timestamp based instead
+app.get('/notifications/pest-detect/:start/:total', (req, res, next) => {
+    const start = parseInt(req.params.start);
+    const total = parseInt(req.params.total);
+    PestDetectNotifications.find().skip(start).limit(total)
+    .then((documents) => {
+        res.status(200).json(documents);
+    })
+    .catch((err) => {
+        console.log(err)
+        res.status(500).json({error: err})
+    })
+});
+
+app.get('/testn', (req, res, next) => {
+    ThermalNotifications.findOne()
+    .then(documents => {
+        console.log(documents.timestamp)
+        res.status(200).json(Date(documents.timestamp));
+    })
+});
+
+
+
+
+app.get('/notifications/fungal-classify/:start/:total', (req, res, next) => {
+    const start = parseInt(req.params.start);
+    const total = parseInt(req.params.total);
+    FungalClassifyNotifications.find().skip(start).limit(total)
+    .then((documents) => {
+        res.status(200).json(documents);
+    })
+    .catch((err) => {
+        console.log(err)
+        res.status(500).json({error: err})
+    })
+});
+
+// app.get('/notifications/plant-growth/:start/:total', (req, res, next) => {
+//     const start = parseInt(req.params.start);
+//     const total = parseInt(req.params.total);
+//     PlantGrowthNotifications.find().skip(start).limit(total)
+//     .then((documents) => {
+//         res.status(200).json(documents);
+//     })
+//     .catch((err) => {
+//         console.log(err)
+//         res.status(500).json({error: err})
+//     })
+// });
+
+app.get('/notifications/plant-growth/:time/:limit', (req, res, next) => {
+    const timestamp = req.params.time;
+    const limit = parseInt(req.params.limit);
+    if(timestamp == 0){
+        PlantGrowthNotifications.find().limit(limit)
+        .then((documents) => {
+            res.status(200).json(documents);
+        })
+        .catch((err) => {
+            console.log(err)
+            res.status(500).json({error: err})
+        })
+    }else{
+        PlantGrowthNotifications.find({timestamp:{"$gte":timestamp }}).countDocuments()
+        .then((skip) => {
+            PlantGrowthNotifications.find().sort({timestamp: -1}).skip(skip).limit(limit)
+            .then((documents) => {
+                res.status(200).json(documents);
+            })
+            .catch((err) => {
+                console.log(err)
+                res.status(500).json({error: err})
+            })
+        })
+        .catch((err) => {
+            console.log(err)
+            res.status(500).json({error: err})
+        });
+    }   
+    
+
+});
+
+
+
+app.get('/notifications/thermal/:time/:limit', (req, res, next) => {
+    const timestamp = req.params.time;
+    const limit = parseInt(req.params.limit);
+    if(timestamp == 0){
+        ThermalNotifications.find().limit(limit) //add the sort method here as well once error resolved
+        .then((documents) => {
+            res.status(200).json(documents);
+        })
+        .catch((err) => {
+            console.log(err)
+            res.status(500).json({error: err})
+        })
+    }else{
+        ThermalNotifications.find({timestamp:{"$gte":timestamp }}).countDocuments()
+        .then((skip) => {
+            // console.log(skip);
+            ThermalNotifications.find().sort({timestamp: -1}).skip(skip).limit(limit) //problem with the sorting, everything else is absolutely fine
+            .then((documents) => {
+                res.status(200).json(documents);
+            })
+            .catch((err) => {
+                console.log(err)
+                res.status(500).json({error: err})
+            })
+        })
+        .catch((err) => {
+            console.log(err)
+            res.status(500).json({error: err})
+        });
+    }   
+    
+
+});
+
+app.get('/notifications/test/:time/:limit', (req, res, next) => {
+    const timestamp = parseInt(req.params.time);
+    const limit = parseInt(req.params.limit);
+    // console.log(limit);
+    if(timestamp == 0){
+        TestNotifications.find().sort({timestamp: -1}).limit(limit) //add the sort method here as well once error resolved
+        .then((documents) => {
+            res.status(200).json(documents);
+        })
+        .catch((err) => {
+            console.log(err)
+            res.status(500).json({error: err})
+        })
+    }else{
+        TestNotifications.find({timestamp:{"$gte":timestamp }}).countDocuments()
+        .then((skip) => {
+            // console.log(skip);
+            TestNotifications.find().sort({timestamp: -1}).skip(skip).limit(limit) //problem with the sorting, everything else is absolutely fine
+            .then((documents) => {
+                res.status(200).json(documents);
+            })
+            .catch((err) => {
+                console.log(err)
+                res.status(500).json({error: err})
+            })
+        })
+        .catch((err) => {
+            console.log(err)
+            res.status(500).json({error: err})
+        });
+    }   
+    
+
+});
+
+app.put('/notifications/test/read/:id', (req, res, next) => {
+    TestNotifications.updateOne({_id: req.params.id},
+        {$set: { isRead: true }})
+    .then(() => {
+        res.status(200).json({
+            message: "Read status successfully updated"
+        });
+    });
+});
+
+app.put('/notifications/test/delete/:id', (req, res, next) => {
+    TestNotifications.updateOne({_id: req.params.id},
+        {$set: { isDeleted: true, deletedOn: Date.now() }})
+    .then(() => {
+        res.status(200).json({
+            message: "Deleted status successfully updated"
+        });
+    });
+});
+
+//test data until the AI team implements the required updates
+
+
+
 
 //--------------------------generating sensor test data - do not use in actual server----------------------------------------
 
@@ -320,6 +510,23 @@ function generateOneSensorDataClim(firstTime_in, intervalSec_in, topicID_in){
     date.setTime(date.getTime() + 1000 * intervalSec_in);
     sensor_data.save();
 }
+
+function generateOneTestNotification(){
+    
+    const testNotifications = new TestNotifications({
+        title: 'test-notification-v2',
+        body: 'a test notification',
+        device_id: 'Hydrotek-Calgary',
+        plant: 'Money plany',
+        image: 'no image yet',
+        timestamp: Date.now()
+        // isRead: false,
+        // isDeleted: false,
+        // deletedOn: null
+    });
+    testNotifications.save();
+    console.log(testNotifications)
+}
 //make below function really nice bc people use it for dummy data
 
 //generates big amounts of data based on parameters:
@@ -350,6 +557,12 @@ app.post('/insert_climate_controller_data/:topicID/:start_date/:interval/:durati
         topicID: req.params.topicID,
         data_groups: req.params.duration / req.params.interval
     });
+});
+
+//test notification data
+app.post('/test-notifications/create', (req, res, test) => {
+    generateOneTestNotification();
+    res.status(201).json({message: ' Test Notification added successfully'})
 });
 
 module.exports = app;
