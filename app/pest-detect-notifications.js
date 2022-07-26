@@ -6,7 +6,10 @@ const pestDetectNotification = mongoose.Schema({
     station: String,
     plant: String,
     image: String,
-    timestamp: String
-}, {_id: false});
+    timestamp: Number, 
+    isRead: {type: Boolean, default: false},
+    isDeleted: {type: Boolean, default: false},
+    deletedOn: {type: Number, default: null}
+});
 
 module.exports = mongoose.model('Pest-Detect-Notification', pestDetectNotification);

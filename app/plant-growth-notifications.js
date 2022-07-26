@@ -6,7 +6,10 @@ const plantGrowthNotification = mongoose.Schema({
     device_id: String,
     plant: String,
     image: String,
-    timestamp: String
-}, {_id: false});
+    timestamp: Number, 
+    isRead: {type: Boolean, default: false},
+    isDeleted: {type: Boolean, default: false},
+    deletedOn: {type: Number, default: null}
+});
 
 module.exports = mongoose.model('plant-growth-Notification', plantGrowthNotification);
