@@ -273,179 +273,6 @@ app.post("/remove_all_sensor_data/:topicID", (req, res, next) => {
 });
 
 //getting notification data
-//make it timestamp based instead
-app.get("/notifications/pest-detect/:time/:limit", (req, res, next) => {
-  const timestamp = parseInt(req.params.time);
-  const limit = parseInt(req.params.limit);
-  // console.log(limit);
-  if (timestamp == 0) {
-    PestDetectNotifications.find()
-      .sort({ timestamp: -1 })
-      .limit(limit) //add the sort method here as well once error resolved
-      .then((documents) => {
-        res.status(200).json(documents);
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(500).json({ error: err });
-      });
-  } else {
-    PestDetectNotifications.find({ timestamp: { $gte: timestamp } })
-      .countDocuments()
-      .then((skip) => {
-        // console.log(skip);
-        PestDetectNotifications.find()
-          .sort({ timestamp: -1 })
-          .skip(skip)
-          .limit(limit) //problem with the sorting, everything else is absolutely fine
-          .then((documents) => {
-            res.status(200).json(documents);
-          })
-          .catch((err) => {
-            console.log(err);
-            res.status(500).json({ error: err });
-          });
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(500).json({ error: err });
-      });
-  }
-});
-
-// app.get('/testn', (req, res, next) => {
-//     ThermalNotifications.findOne()
-//     .then(documents => {
-//         console.log(documents.timestamp)
-//         res.status(200).json(Date(documents.timestamp));
-//     })
-// });
-
-app.get("/notifications/fungal-classify/:time/:limit", (req, res, next) => {
-  const timestamp = parseInt(req.params.time);
-  const limit = parseInt(req.params.limit);
-  // console.log(limit);
-  if (timestamp == 0) {
-    FungalClassifyNotifications.find()
-      .sort({ timestamp: -1 })
-      .limit(limit) //add the sort method here as well once error resolved
-      .then((documents) => {
-        res.status(200).json(documents);
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(500).json({ error: err });
-      });
-  } else {
-    FungalClassifyNotifications.find({ timestamp: { $gte: timestamp } })
-      .countDocuments()
-      .then((skip) => {
-        // console.log(skip);
-        FungalClassifyNotifications.find()
-          .sort({ timestamp: -1 })
-          .skip(skip)
-          .limit(limit) //problem with the sorting, everything else is absolutely fine
-          .then((documents) => {
-            res.status(200).json(documents);
-          })
-          .catch((err) => {
-            console.log(err);
-            res.status(500).json({ error: err });
-          });
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(500).json({ error: err });
-      });
-  }
-});
-
-// app.get('/notifications/plant-growth/:start/:total', (req, res, next) => {
-//     const start = parseInt(req.params.start);
-//     const total = parseInt(req.params.total);
-//     PlantGrowthNotifications.find().skip(start).limit(total)
-//     .then((documents) => {
-//         res.status(200).json(documents);
-//     })
-//     .catch((err) => {
-//         console.log(err)
-//         res.status(500).json({error: err})
-//     })
-// });
-
-app.get("/notifications/plant-growth/:time/:limit", (req, res, next) => {
-  const timestamp = req.params.time;
-  const limit = parseInt(req.params.limit);
-  if (timestamp == 0) {
-    PlantGrowthNotifications.find()
-      .limit(limit)
-      .then((documents) => {
-        res.status(200).json(documents);
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(500).json({ error: err });
-      });
-  } else {
-    PlantGrowthNotifications.find({ timestamp: { $gte: timestamp } })
-      .countDocuments()
-      .then((skip) => {
-        PlantGrowthNotifications.find()
-          .sort({ timestamp: -1 })
-          .skip(skip)
-          .limit(limit)
-          .then((documents) => {
-            res.status(200).json(documents);
-          })
-          .catch((err) => {
-            console.log(err);
-            res.status(500).json({ error: err });
-          });
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(500).json({ error: err });
-      });
-  }
-});
-
-app.get("/notifications/thermal/:time/:limit", (req, res, next) => {
-  const timestamp = parseInt(req.params.time);
-  const limit = parseInt(req.params.limit);
-  if (timestamp == 0) {
-    ThermalNotifications.find()
-      .sort({ timestamp: -1 })
-      .limit(limit)
-      .then((documents) => {
-        res.status(200).json(documents);
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(500).json({ error: err });
-      });
-  } else {
-    ThermalNotifications.find({ timestamp: { $gte: timestamp } })
-      .countDocuments()
-      .then((skip) => {
-        // console.log(skip);
-        ThermalNotifications.find()
-          .sort({ timestamp: -1 })
-          .skip(skip)
-          .limit(limit) //problem with the sorting, everything else is absolutely fine
-          .then((documents) => {
-            res.status(200).json(documents);
-          })
-          .catch((err) => {
-            console.log(err);
-            res.status(500).json({ error: err });
-          });
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(500).json({ error: err });
-      });
-  }
-});
 
 app.get("/notifications/test/:time/:limit", (req, res, next) => {
   const timestamp = parseInt(req.params.time);
@@ -486,6 +313,63 @@ app.get("/notifications/test/:time/:limit", (req, res, next) => {
   }
 });
 
+app.get("/notifications/:type/:time/:limit", (req, res, next) => {
+  const timestamp = parseInt(req.params.time);
+  const limit = parseInt(req.params.limit);
+  const notificationType = req.params.type;
+  var NotificationSchema;
+  
+  if (notificationType == "fungal-classify") {
+    NotificationSchema = FungalClassifyNotifications;
+  } 
+  else if (notificationType == "plant-growth") {
+    NotificationSchema = PlantGrowthNotifications;
+  } 
+  else if (notificationType == "thermal") {
+    NotificationSchema = ThermalNotifications;
+  } 
+  else if (notificationType == "pest-detect") {
+    NotificationSchema = PestDetectNotifications;
+  } 
+  else {
+    res.status(400).json({ error: "Path not found: Invalid notification type" });
+    return;
+  }
+
+  if (timestamp == 0) {
+    NotificationSchema.find()
+      .sort({ timestamp: -1 })
+      .limit(limit) 
+      .then((documents) => {
+        res.status(200).json(documents);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).json({ error: err });
+      });
+  } else {
+    NotificationSchema.find({ timestamp: { $gte: timestamp } })
+      .countDocuments()
+      .then((skip) => {
+        NotificationSchema.find()
+          .sort({ timestamp: -1 })
+          .skip(skip)
+          .limit(limit) 
+          .then((documents) => {
+            res.status(200).json(documents);
+          })
+          .catch((err) => {
+            console.log(err);
+            res.status(500).json({ error: err });
+          });
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).json({ error: err });
+      });
+  }
+});
+
 app.put("/notifications/test/read/:id", (req, res, next) => {
   TestNotifications.updateOne(
     { _id: req.params.id },
@@ -508,8 +392,28 @@ app.put("/notifications/test/delete/:id", (req, res, next) => {
   });
 });
 
-app.put("/notifications/thermal/read/:id", (req, res, next) => {
-  ThermalNotifications.updateOne(
+app.put("/notifications/:type/read/:id", (req, res, next) => {
+  const notificationType = req.params.type;
+  var NotificationSchema;
+
+  if (notificationType == "fungal-classify") {
+    NotificationSchema = FungalClassifyNotifications;
+  } 
+  else if (notificationType == "plant-growth") {
+    NotificationSchema = PlantGrowthNotifications;
+  } 
+  else if (notificationType == "thermal") {
+    NotificationSchema = ThermalNotifications;
+  } 
+  else if (notificationType == "pest-detect") {
+    NotificationSchema = PestDetectNotifications;
+  } 
+  else {
+    res.status(400).json({ error: "Path not found: Invalid notification type" });
+    return;
+  }
+
+  NotificationSchema.updateOne(
     { _id: req.params.id },
     { $set: { isRead: true } }
   ).then(() => {
@@ -519,74 +423,28 @@ app.put("/notifications/thermal/read/:id", (req, res, next) => {
   });
 });
 
-app.put("/notifications/thermal/delete/:id", (req, res, next) => {
-  ThermalNotifications.updateOne(
-    { _id: req.params.id },
-    { $set: { isDeleted: true, deletedOn: Date.now() } }
-  ).then(() => {
-    res.status(200).json({
-      message: "Deleted status successfully updated",
-    });
-  });
-});
+app.put("/notifications/:type/delete/:id", (req, res, next) => {
+  const notificationType = req.params.type;
+  var NotificationSchema;
 
-app.put("/notifications/plant-growth/read/:id", (req, res, next) => {
-  PlantGrowthNotifications.updateOne(
-    { _id: req.params.id },
-    { $set: { isRead: true } }
-  ).then(() => {
-    res.status(200).json({
-      message: "Read status successfully updated",
-    });
-  });
-});
+  if (notificationType == "fungal-classify") {
+    NotificationSchema = FungalClassifyNotifications;
+  } 
+  else if (notificationType == "plant-growth") {
+    NotificationSchema = PlantGrowthNotifications;
+  } 
+  else if (notificationType == "thermal") {
+    NotificationSchema = ThermalNotifications;
+  } 
+  else if (notificationType == "pest-detect") {
+    NotificationSchema = PestDetectNotifications;
+  } 
+  else {
+    res.status(400).json({ error: "Path not found: Invalid notification type" });
+    return;
+  }
 
-app.put("/notifications/plant-growth/delete/:id", (req, res, next) => {
-  PlantGrowthNotifications.updateOne(
-    { _id: req.params.id },
-    { $set: { isDeleted: true, deletedOn: Date.now() } }
-  ).then(() => {
-    res.status(200).json({
-      message: "Deleted status successfully updated",
-    });
-  });
-});
-
-app.put("/notifications/fungal-classify/read/:id", (req, res, next) => {
-  FungalClassifyNotifications.updateOne(
-    { _id: req.params.id },
-    { $set: { isRead: true } }
-  ).then(() => {
-    res.status(200).json({
-      message: "Read status successfully updated",
-    });
-  });
-});
-
-app.put("/notifications/fungal-classify/delete/:id", (req, res, next) => {
-  FungalClassifyNotifications.updateOne(
-    { _id: req.params.id },
-    { $set: { isDeleted: true, deletedOn: Date.now() } }
-  ).then(() => {
-    res.status(200).json({
-      message: "Deleted status successfully updated",
-    });
-  });
-});
-
-app.put("/notifications/pest-detect/read/:id", (req, res, next) => {
-  PestDetectNotifications.updateOne(
-    { _id: req.params.id },
-    { $set: { isRead: true } }
-  ).then(() => {
-    res.status(200).json({
-      message: "Read status successfully updated",
-    });
-  });
-});
-
-app.put("/notifications/pest-detect/delete/:id", (req, res, next) => {
-  PestDetectNotifications.updateOne(
+  NotificationSchema.updateOne(
     { _id: req.params.id },
     { $set: { isDeleted: true, deletedOn: Date.now() } }
   ).then(() => {
@@ -836,7 +694,7 @@ function generateOnePestDetectNotification() {
 
 function generateOneFungalClassifyNotification() {
   const fcNotifications = new FungalClassifyNotifications({
-    title: "Pest Detected at hydrotek-farm",
+    title: "Fungus Detected at hydrotek-farm",
     body: "a test notification",
     device_id: "Hydrotek-Calgary",
     plant: "Money plany",
