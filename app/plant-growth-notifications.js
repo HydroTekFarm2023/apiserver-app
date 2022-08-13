@@ -7,6 +7,7 @@ const plantGrowthNotification = mongoose.Schema({
     plant: String,
     image: String,
     timestamp: Number, 
+    notificationType: {type: String, default: 'plant-growth'},
     isRead: {type: Boolean, default: false},
     isDeleted: {type: Boolean, default: false},
     deletedOn: {type: Number, default: null}

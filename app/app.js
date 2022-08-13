@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+// const useState = require("usestate");
 const app = express();
 
 const FertigationSystemSettings = require("./fertigation-system-settings");
@@ -58,6 +59,8 @@ app.use((req, res, next) => {
   );
   next();
 });
+
+// returnNotifications("pest-detect", 0, 1);
 
 app.post("/fertigation-system-settings/create", (req, res, next) => {
   const fertigationSystemSettings = new FertigationSystemSettings({
@@ -274,6 +277,7 @@ app.post("/remove_all_sensor_data/:topicID", (req, res, next) => {
 
 //getting notification data
 
+//endpoint for getting test notification data
 app.get("/notifications/test/:time/:limit", (req, res, next) => {
   const timestamp = parseInt(req.params.time);
   const limit = parseInt(req.params.limit);
@@ -313,62 +317,103 @@ app.get("/notifications/test/:time/:limit", (req, res, next) => {
   }
 });
 
-app.get("/notifications/:type/:time/:limit", (req, res, next) => {
+//endpoint for getting all notifications
+//parameters: time (timestamp/0 for first n set of notifications), limit (number of notifications to return after specified timestamp)
+
+app.get("/notifications/get/:time/:limit", (req, res, next) => {
   const timestamp = parseInt(req.params.time);
   const limit = parseInt(req.params.limit);
-  const notificationType = req.params.type;
-  var NotificationSchema;
-  
-  if (notificationType == "fungal-classify") {
-    NotificationSchema = FungalClassifyNotifications;
-  } 
-  else if (notificationType == "plant-growth") {
-    NotificationSchema = PlantGrowthNotifications;
-  } 
-  else if (notificationType == "thermal") {
-    NotificationSchema = ThermalNotifications;
-  } 
-  else if (notificationType == "pest-detect") {
-    NotificationSchema = PestDetectNotifications;
-  } 
-  else {
-    res.status(400).json({ error: "Path not found: Invalid notification type" });
-    return;
-  }
+  const notificationSchemas = ['pest-detect','thermal', 'fungal-classify', 'plant-growth'];
+  var notifications = new Array();
+  var index;
+  var promises = [];
+  var result = [];
 
-  if (timestamp == 0) {
-    NotificationSchema.find()
-      .sort({ timestamp: -1 })
-      .limit(limit) 
-      .then((documents) => {
-        res.status(200).json(documents);
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(500).json({ error: err });
-      });
-  } else {
-    NotificationSchema.find({ timestamp: { $gte: timestamp } })
-      .countDocuments()
-      .then((skip) => {
-        NotificationSchema.find()
+  for(notificationSchema of notificationSchemas){
+    NotificationSchema = getNotificationSchema(notificationSchema);
+    if(NotificationSchema == null){
+      res.status(400).json({ error: "Path not found: Invalid notification type" });
+      return;
+    }
+     
+    if (timestamp == 0) {
+      var promise = NotificationSchema.find()
+        .sort({ timestamp: -1 })
+        .limit(limit);
+        promises.push(promise);
+    } else {
+        var promise = NotificationSchema.find({ timestamp: { $lt: timestamp, $gt:0 } })
           .sort({ timestamp: -1 })
-          .skip(skip)
-          .limit(limit) 
-          .then((documents) => {
-            res.status(200).json(documents);
-          })
-          .catch((err) => {
-            console.log(err);
-            res.status(500).json({ error: err });
-          });
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(500).json({ error: err });
-      });
-  }
+          .limit(limit);
+          promises.push(promise); 
+    }
+    
+  };
+  Promise.all(promises).then((values => {
+    for(i in values){
+      for(j in values[i]){
+        notifications.push(values[i][j]);
+      }
+    }
+    notifications.sort(function(a, b){
+      return b.timestamp - a.timestamp;
+    });
+    result = notifications.slice(0, limit);
+
+    res.status(200).json(result);
+  }));
+  
 });
+
+//test code for getting notifications from a single collection
+
+// app.get("/notifications/:type/:time/:limit", (req, res, next) => {
+//   const timestamp = parseInt(req.params.time);
+//   const limit = parseInt(req.params.limit);
+//   const notificationType = req.params.type;
+//   var NotificationSchema;
+
+//   NotificationSchema = getNotificationSchema(notificationType);
+//   if(NotificationSchema == null){
+//     res.status(400).json({ error: "Path not found: Invalid notification type" });
+//     return;
+//   }
+
+//   if (timestamp == 0) {
+//     NotificationSchema.find()
+//       .sort({ timestamp: -1 })
+//       .limit(limit) 
+//       .then((documents) => {
+//         res.status(200).json(documents);
+//       })
+//       .catch((err) => {
+//         console.log(err);
+//         res.status(500).json({ error: err });
+//       });
+//   } else {
+//     NotificationSchema.find({ timestamp: { $gte: timestamp } })
+//       .countDocuments()
+//       .then((skip) => {
+//         NotificationSchema.find()
+//           .sort({ timestamp: -1 })
+//           .skip(skip)
+//           .limit(limit) 
+//           .then((documents) => {
+//             res.status(200).json(documents);
+//           })
+//           .catch((err) => {
+//             console.log(err);
+//             res.status(500).json({ error: err });
+//           });
+//       })
+//       .catch((err) => {
+//         console.log(err);
+//         res.status(500).json({ error: err });
+//       });
+//   }
+// });
+
+// code for updating test notification variables from a single collection
 
 app.put("/notifications/test/read/:id", (req, res, next) => {
   TestNotifications.updateOne(
@@ -392,23 +437,14 @@ app.put("/notifications/test/delete/:id", (req, res, next) => {
   });
 });
 
+//code for updating notifications variables from a single collection
+
 app.put("/notifications/:type/read/:id", (req, res, next) => {
   const notificationType = req.params.type;
   var NotificationSchema;
 
-  if (notificationType == "fungal-classify") {
-    NotificationSchema = FungalClassifyNotifications;
-  } 
-  else if (notificationType == "plant-growth") {
-    NotificationSchema = PlantGrowthNotifications;
-  } 
-  else if (notificationType == "thermal") {
-    NotificationSchema = ThermalNotifications;
-  } 
-  else if (notificationType == "pest-detect") {
-    NotificationSchema = PestDetectNotifications;
-  } 
-  else {
+  NotificationSchema = getNotificationSchema(notificationType);
+  if(NotificationSchema == null){
     res.status(400).json({ error: "Path not found: Invalid notification type" });
     return;
   }
@@ -427,19 +463,8 @@ app.put("/notifications/:type/delete/:id", (req, res, next) => {
   const notificationType = req.params.type;
   var NotificationSchema;
 
-  if (notificationType == "fungal-classify") {
-    NotificationSchema = FungalClassifyNotifications;
-  } 
-  else if (notificationType == "plant-growth") {
-    NotificationSchema = PlantGrowthNotifications;
-  } 
-  else if (notificationType == "thermal") {
-    NotificationSchema = ThermalNotifications;
-  } 
-  else if (notificationType == "pest-detect") {
-    NotificationSchema = PestDetectNotifications;
-  } 
-  else {
+  NotificationSchema = getNotificationSchema(notificationType);
+  if(NotificationSchema == null){
     res.status(400).json({ error: "Path not found: Invalid notification type" });
     return;
   }
@@ -709,6 +734,30 @@ function generateOneFungalClassifyNotification() {
   console.log(fcNotifications);
 }
 
+//function to provide appropriate notification schema
+
+function getNotificationSchema(notificationType) {
+  var NotificationSchema;
+
+  if (notificationType == "fungal-classify") {
+    NotificationSchema = FungalClassifyNotifications;
+  } 
+  else if (notificationType == "plant-growth") {
+    NotificationSchema = PlantGrowthNotifications;
+  } 
+  else if (notificationType == "thermal") {
+    NotificationSchema = ThermalNotifications;
+  } 
+  else if (notificationType == "pest-detect") {
+    NotificationSchema = PestDetectNotifications;
+  } 
+  else {
+    NotificationSchema = null;
+  }
+
+  return NotificationSchema;
+}
+
 //make below function really nice bc people use it for dummy data
 
 //generates big amounts of data based on parameters:
@@ -747,7 +796,7 @@ app.post(
   }
 );
 
-//test notification data
+// endpoints to generate dummy data for notification collections
 app.post("/test-notifications/create", (req, res, test) => {
   generateOneTestNotification();
   res.status(201).json({ message: " Test Notification added successfully" });

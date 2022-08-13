@@ -7,6 +7,7 @@ const fungalClassifyNotification = mongoose.Schema({
     plant: String,
     image: String,
     timestamp: Number, 
+    notificationType: {type: String, default: 'fungal-classify'},
     isRead: {type: Boolean, default: false},
     isDeleted: {type: Boolean, default: false},
     deletedOn: {type: Number, default: null}

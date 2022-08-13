@@ -7,6 +7,7 @@ const pestDetectNotification = mongoose.Schema({
     plant: String,
     image: String,
     timestamp: Number, 
+    notificationType: {type: String, default: 'pest-detect'}, 
     isRead: {type: Boolean, default: false},
     isDeleted: {type: Boolean, default: false},
     deletedOn: {type: Number, default: null}

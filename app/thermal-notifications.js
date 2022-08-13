@@ -6,7 +6,8 @@ const ThermalNotification = mongoose.Schema({
     station: String,
     plant: String,
     image: String,
-    timestamp: Number, 
+    timestamp: Number,
+    notificationType: {type: String, default: 'thermal'},
     isRead: {type: Boolean, default: false},
     isDeleted: {type: Boolean, default: false},
     deletedOn: {type: Number, default: null}
