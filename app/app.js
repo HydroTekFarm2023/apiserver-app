@@ -1,7 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-// const useState = require("usestate");
 const app = express();
 
 const FertigationSystemSettings = require("./fertigation-system-settings");
@@ -323,95 +322,53 @@ app.get("/notifications/test/:time/:limit", (req, res, next) => {
 app.get("/notifications/get/:time/:limit", (req, res, next) => {
   const timestamp = parseInt(req.params.time);
   const limit = parseInt(req.params.limit);
-  const notificationSchemas = ['pest-detect','thermal', 'fungal-classify', 'plant-growth'];
+  const notificationSchemas = [
+    "pest-detect",
+    "thermal",
+    "fungal-classify",
+    "plant-growth",
+  ];
   var notifications = new Array();
-  var index;
   var promises = [];
   var result = [];
 
-  for(notificationSchema of notificationSchemas){
+  for (notificationSchema of notificationSchemas) {
     NotificationSchema = getNotificationSchema(notificationSchema);
-    if(NotificationSchema == null){
-      res.status(400).json({ error: "Path not found: Invalid notification type" });
+    if (NotificationSchema == null) {
+      res
+        .status(400)
+        .json({ error: "Path not found: Invalid notification type" });
       return;
     }
-     
+
     if (timestamp == 0) {
       var promise = NotificationSchema.find()
         .sort({ timestamp: -1 })
         .limit(limit);
-        promises.push(promise);
+      promises.push(promise);
     } else {
-        var promise = NotificationSchema.find({ timestamp: { $lt: timestamp, $gt:0 } })
-          .sort({ timestamp: -1 })
-          .limit(limit);
-          promises.push(promise); 
+      var promise = NotificationSchema.find({
+        timestamp: { $lt: timestamp, $gt: 0 },
+      })
+        .sort({ timestamp: -1 })
+        .limit(limit);
+      promises.push(promise);
     }
-    
-  };
-  Promise.all(promises).then((values => {
-    for(i in values){
-      for(j in values[i]){
+  }
+  Promise.all(promises).then((values) => {
+    for (i in values) {
+      for (j in values[i]) {
         notifications.push(values[i][j]);
       }
     }
-    notifications.sort(function(a, b){
+    notifications.sort(function (a, b) {
       return b.timestamp - a.timestamp;
     });
     result = notifications.slice(0, limit);
 
     res.status(200).json(result);
-  }));
-  
+  });
 });
-
-//test code for getting notifications from a single collection
-
-// app.get("/notifications/:type/:time/:limit", (req, res, next) => {
-//   const timestamp = parseInt(req.params.time);
-//   const limit = parseInt(req.params.limit);
-//   const notificationType = req.params.type;
-//   var NotificationSchema;
-
-//   NotificationSchema = getNotificationSchema(notificationType);
-//   if(NotificationSchema == null){
-//     res.status(400).json({ error: "Path not found: Invalid notification type" });
-//     return;
-//   }
-
-//   if (timestamp == 0) {
-//     NotificationSchema.find()
-//       .sort({ timestamp: -1 })
-//       .limit(limit) 
-//       .then((documents) => {
-//         res.status(200).json(documents);
-//       })
-//       .catch((err) => {
-//         console.log(err);
-//         res.status(500).json({ error: err });
-//       });
-//   } else {
-//     NotificationSchema.find({ timestamp: { $gte: timestamp } })
-//       .countDocuments()
-//       .then((skip) => {
-//         NotificationSchema.find()
-//           .sort({ timestamp: -1 })
-//           .skip(skip)
-//           .limit(limit) 
-//           .then((documents) => {
-//             res.status(200).json(documents);
-//           })
-//           .catch((err) => {
-//             console.log(err);
-//             res.status(500).json({ error: err });
-//           });
-//       })
-//       .catch((err) => {
-//         console.log(err);
-//         res.status(500).json({ error: err });
-//       });
-//   }
-// });
 
 // code for updating test notification variables from a single collection
 
@@ -444,8 +401,10 @@ app.put("/notifications/:type/read/:id", (req, res, next) => {
   var NotificationSchema;
 
   NotificationSchema = getNotificationSchema(notificationType);
-  if(NotificationSchema == null){
-    res.status(400).json({ error: "Path not found: Invalid notification type" });
+  if (NotificationSchema == null) {
+    res
+      .status(400)
+      .json({ error: "Path not found: Invalid notification type" });
     return;
   }
 
@@ -464,8 +423,10 @@ app.put("/notifications/:type/delete/:id", (req, res, next) => {
   var NotificationSchema;
 
   NotificationSchema = getNotificationSchema(notificationType);
-  if(NotificationSchema == null){
-    res.status(400).json({ error: "Path not found: Invalid notification type" });
+  if (NotificationSchema == null) {
+    res
+      .status(400)
+      .json({ error: "Path not found: Invalid notification type" });
     return;
   }
 
@@ -660,9 +621,6 @@ function generateOneTestNotification() {
     plant: "Money plany",
     image: "no image yet",
     timestamp: Date.now(),
-    // isRead: false,
-    // isDeleted: false,
-    // deletedOn: null
   });
   testNotifications.save();
   console.log(testNotifications);
@@ -676,9 +634,6 @@ function generateOneThermalNotification() {
     plant: "Money plany",
     image: "no image yet",
     timestamp: Date.now(),
-    // isRead: false,
-    // isDeleted: false,
-    // deletedOn: null
   });
   thermalNotifications.save();
   console.log(thermalNotifications);
@@ -692,9 +647,6 @@ function generateOnePlantGrowthNotification() {
     plant: "Money plany",
     image: "hydrotekai/HeightAnalysis/NFTtest2.jpg",
     timestamp: Date.now(),
-    // isRead: false,
-    // isDeleted: false,
-    // deletedOn: null
   });
   pgNotifications.save();
   console.log(pgNotifications);
@@ -709,9 +661,6 @@ function generateOnePestDetectNotification() {
     image:
       "hydrotek-2022/images/mumbai-hydrotek-farm/station-1/daily-rgb-output-images/t3-output.jpg",
     timestamp: Date.now(),
-    // isRead: false,
-    // isDeleted: false,
-    // deletedOn: null
   });
   pdNotifications.save();
   console.log(pdNotifications);
@@ -726,9 +675,6 @@ function generateOneFungalClassifyNotification() {
     image:
       "hydrotek-2022/images/mumbai-hydrotek-farm/station-1/daily-rgb-output-images/tomato-11-output.jpg",
     timestamp: Date.now(),
-    // isRead: false,
-    // isDeleted: false,
-    // deletedOn: null
   });
   fcNotifications.save();
   console.log(fcNotifications);
@@ -741,17 +687,13 @@ function getNotificationSchema(notificationType) {
 
   if (notificationType == "fungal-classify") {
     NotificationSchema = FungalClassifyNotifications;
-  } 
-  else if (notificationType == "plant-growth") {
+  } else if (notificationType == "plant-growth") {
     NotificationSchema = PlantGrowthNotifications;
-  } 
-  else if (notificationType == "thermal") {
+  } else if (notificationType == "thermal") {
     NotificationSchema = ThermalNotifications;
-  } 
-  else if (notificationType == "pest-detect") {
+  } else if (notificationType == "pest-detect") {
     NotificationSchema = PestDetectNotifications;
-  } 
-  else {
+  } else {
     NotificationSchema = null;
   }
 
